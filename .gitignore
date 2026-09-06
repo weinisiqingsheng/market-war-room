@@ -5,6 +5,7 @@ node_modules/
 .next/
 out/
 build/
+dist/
 
 # python
 __pycache__/
@@ -34,6 +35,9 @@ next-env.d.ts
 
 # test / coverage
 coverage/
+
+# local generated acceptance / debug artifacts
+/artifacts/phase-7d/
 
 # editors / os
 .vscode/

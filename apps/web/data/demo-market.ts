@@ -32,8 +32,8 @@ import {
 
 export const demoHeaderNav: HeaderNavItem[] = [
   { id: "overview", label: "Overview", href: "/" },
-  { id: "markets", label: "Markets", href: "#market-pulse", disabled: true },
-  { id: "intelligence", label: "Intelligence", href: "#ai-brief", disabled: true },
+  { id: "markets", label: "Markets", href: "/markets" },
+  { id: "intelligence", label: "Intelligence", href: "/intelligence", disabled: true },
 ];
 
 export const demoSession: MarketSession = {

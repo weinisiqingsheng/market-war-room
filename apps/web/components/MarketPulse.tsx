@@ -9,17 +9,28 @@ interface MarketPulseProps {
   mode: MarketDataMode;
   feed: MarketFeed | null;
   stale?: boolean;
+  /** Markets workspace labels the module "Major Indexes"; Overview keeps "Market Pulse". */
+  title?: string;
+  kicker?: string;
 }
 
 const SURFACES_FOR_SKELETON = ["bg-sakura-300", "bg-lavender", "bg-cream", "bg-mint"];
 
-export function MarketPulse({ indices, status, mode, feed, stale = false }: MarketPulseProps) {
+export function MarketPulse({
+  indices,
+  status,
+  mode,
+  feed,
+  stale = false,
+  title = "Market Pulse",
+  kicker = "Index Snapshot",
+}: MarketPulseProps) {
   return (
     <section id="market-pulse" aria-labelledby="market-pulse-heading">
       <SectionHeader
         id="market-pulse-heading"
-        kicker="Index Snapshot"
-        title="Market Pulse"
+        kicker={kicker}
+        title={title}
         subtitle={
           mode === "live"
             ? "Live ETF prices — daily range and day position"

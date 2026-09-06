@@ -9,6 +9,8 @@ interface MacroPulseProps {
   status: ProvenanceStatus;
   mode: MarketDataMode;
   meta: MacroDataMeta | null;
+  /** Markets workspace labels this section "Macro Dashboard"; Overview keeps "Macro Pulse". */
+  title?: string;
 }
 
 const SKELETON_LABELS = ["VIX", "US 10Y", "WTI", "US Dollar", "Gold", "BTC"];
@@ -19,7 +21,13 @@ const SKELETON_LABELS = ["VIX", "US 10Y", "WTI", "US Dollar", "Gold", "BTC"];
  * deliberately safe language ("MACRO DATA") rather than "LIVE MACRO DATA",
  * because FRED cells are daily observations, not real-time.
  */
-export function MacroPulse({ signals, status, mode, meta }: MacroPulseProps) {
+export function MacroPulse({
+  signals,
+  status,
+  mode,
+  meta,
+  title = "Macro Pulse",
+}: MacroPulseProps) {
   const isLive = mode === "live";
 
   return (
@@ -27,7 +35,7 @@ export function MacroPulse({ signals, status, mode, meta }: MacroPulseProps) {
       <SectionHeader
         id="macro-pulse-heading"
         kicker="Macro Signals"
-        title="Macro Pulse"
+        title={title}
         subtitle="Raw price direction and market interpretation are separate signals"
         meta={
           isLive ? (

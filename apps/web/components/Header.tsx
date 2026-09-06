@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import type { MarketDataMeta, MarketDataMode } from "@war-room/types";
 import type { HeaderNavItem, MarketSession } from "@/types/market";
@@ -50,7 +51,38 @@ interface HeaderProps {
   meta: MarketDataMeta | null;
 }
 
+/** One primary-nav pill: active pink fill, inactive soft text, disabled muted. */
+function NavPill({ item, pathname }: { item: HeaderNavItem; pathname: string }) {
+  if (item.disabled) {
+    return (
+      <span
+        aria-disabled="true"
+        title="Available in a future phase"
+        className="cursor-not-allowed whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm text-ink-muted"
+      >
+        {item.label}
+      </span>
+    );
+  }
+
+  const active = pathname === item.href;
+  return (
+    <Link
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1 ${
+        active
+          ? "bg-brand-deep text-surface hover:brightness-90"
+          : "text-ink-secondary hover:bg-sakura-100 hover:text-brand-deep"
+      }`}
+    >
+      {item.label}
+    </Link>
+  );
+}
+
 export function Header({ nav, session, mode, meta }: HeaderProps) {
+  const pathname = usePathname();
   const clock = useEtClock();
   const isLive = mode === "live";
 
@@ -106,32 +138,14 @@ export function Header({ nav, session, mode, meta }: HeaderProps) {
           </span>
         </div>
 
-        {/* Navigation — only Overview is implemented in Phase 0A */}
+        {/* Navigation — Markets is live in V1.1A; Intelligence stays disabled */}
         <nav aria-label="Primary" className="hidden md:block">
           <ul className="flex items-center gap-1 rounded-full border border-line bg-white/60 p-1 shadow-soft">
-            {nav.map((item) =>
-              item.disabled ? (
-                <li key={item.id}>
-                  <span
-                    aria-disabled="true"
-                    title="Available in a future phase"
-                    className="cursor-not-allowed rounded-full px-3.5 py-1.5 text-sm text-ink-muted"
-                  >
-                    {item.label}
-                  </span>
-                </li>
-              ) : (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    aria-current="page"
-                    className="rounded-full bg-brand-deep px-3.5 py-1.5 text-sm font-medium text-surface transition-colors hover:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-1"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ),
-            )}
+            {nav.map((item) => (
+              <li key={item.id}>
+                <NavPill item={item} pathname={pathname} />
+              </li>
+            ))}
           </ul>
         </nav>
 
@@ -170,6 +184,20 @@ export function Header({ nav, session, mode, meta }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Compact mobile primary nav — keeps route switching usable below md. */}
+      <nav
+        aria-label="Primary mobile"
+        className="border-t border-line/70 bg-page/90 backdrop-blur-md md:hidden"
+      >
+        <ul className="flex items-center justify-start gap-1 overflow-x-auto px-2 py-1.5 sm:justify-center">
+          {nav.map((item) => (
+            <li key={item.id}>
+              <NavPill item={item} pathname={pathname} />
+            </li>
+          ))}
+        </ul>
+      </nav>
     </header>
   );
 }
