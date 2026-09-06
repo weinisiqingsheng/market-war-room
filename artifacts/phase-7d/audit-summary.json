@@ -1,0 +1,25 @@
+{
+  "fingerprint": "be3d8b2c10680ab67e246ec068911e724ed6b49c1a8118c398ef1116f991bffa",
+  "factCount": 49,
+  "inputConfidence": {
+    "score": 0.8659999999999999,
+    "label": "medium"
+  },
+  "attempts": 2,
+  "schemaAccepted": true,
+  "groundingAccepted": true,
+  "claimsCounts": {
+    "SUPPORTED": 19,
+    "PARTIAL": 1,
+    "UNSUPPORTED": 0,
+    "NON_FACTUAL": 2
+  },
+  "groundedFactualRate": 0.95,
+  "numericViolations": 0,
+  "catalystViolations": 0,
+  "causalOverstatements": 0,
+  "futureEventViolations": 0,
+  "unknownEvidenceRefs": 0,
+  "confidenceMatch": true,
+  "headlineVerdict": "SUPPORTED"
+}

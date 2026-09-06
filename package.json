@@ -1,0 +1,31 @@
+{
+  "name": "market-war-room",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sakura Market Intelligence — AI-powered market intelligence terminal. Phase 0A: UI foundation.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @war-room/web",
+    "build": "npm run build -w @war-room/web",
+    "start": "npm run start -w @war-room/web",
+    "lint": "npm run lint -w @war-room/web",
+    "typecheck": "npm run typecheck -w @war-room/web && npm run typecheck -w @war-room/types",
+    "test": "npm run test -w @war-room/web",
+    "test:analytics": "cd services/analytics && .venv/bin/pytest -q",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "capture": "node scripts/capture-screenshots.mjs",
+    "audit": "node scripts/audit-layout.mjs"
+  },
+  "devDependencies": {
+    "pngjs": "^7.0.0",
+    "prettier": "^3.6.2",
+    "puppeteer-core": "^24.43.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

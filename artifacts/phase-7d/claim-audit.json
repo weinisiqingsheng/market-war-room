@@ -1,0 +1,318 @@
+{
+  "claims": [
+    {
+      "path": "headline",
+      "claimText": "Broad selloff with extreme single-stock anomalies; cautious regime persists",
+      "evidenceRefs": [],
+      "evidenceTexts": [],
+      "verdict": "SUPPORTED",
+      "reason": "auditScope=full-evidence-pack; regime 49/100, Broad Selloff, extreme LULU/FICO shocks all in pack"
+    },
+    {
+      "path": "stance.summary",
+      "claimText": "Market regime is CAUTIOUS / NEUTRAL at 49/100, with broad selloff participation and weak breadth.",
+      "evidenceRefs": [
+        "regime.overall",
+        "breadth.summary"
+      ],
+      "evidenceTexts": [
+        "Market regime is CAUTIOUS / NEUTRAL at 49/100.",
+        "S&P 500 breadth score is 24/100 with Broad Selloff participation."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "regime 49/100 and breadth 24/100 Broad Selloff verbatim"
+    },
+    {
+      "path": "overview[0].text",
+      "claimText": "SPY fell 0.4% while QQQ was unchanged and IWM rose 0.2%, showing mixed index performance.",
+      "evidenceRefs": [
+        "market.spy",
+        "market.qqq",
+        "market.iwm"
+      ],
+      "evidenceTexts": [
+        "SPY fell 0.4% in the latest market observation.",
+        "QQQ was unchanged in the latest market observation.",
+        "IWM rose 0.2% in the latest market observation."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "all three index moves verbatim; 'mixed' summarizes supported differences"
+    },
+    {
+      "path": "overview[1].text",
+      "claimText": "Breadth is extremely weak: only 0.3% of constituents above 20-day MA and 34.9% advancing.",
+      "evidenceRefs": [
+        "breadth.above20",
+        "breadth.advanceRatio"
+      ],
+      "evidenceTexts": [
+        "0.3% of constituents were above their 20-day moving average.",
+        "34.9% of eligible S&P 500 members advanced."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "0.3% above20 and 34.9% advancing verbatim; 'extremely weak' consistent"
+    },
+    {
+      "path": "overview[2].text",
+      "claimText": "Several large-cap stocks experienced extreme volatility shocks, including FICO and LULU.",
+      "evidenceRefs": [
+        "anomaly.FICO",
+        "anomaly.LULU"
+      ],
+      "evidenceTexts": [
+        "FICO fell 16.7%, a 6.1× 20D-volatility return shock, with anomaly score 100.",
+        "LULU fell 17.4%, a 6.6× 20D-volatility return shock, with anomaly score 100."
+      ],
+      "verdict": "PARTIAL",
+      "reason": "shocks & scores verbatim, but 'large-cap' and 'extreme' not in cited fact texts"
+    },
+    {
+      "path": "keyDrivers[0]",
+      "claimText": "Regulatory / Legal catalysts: EFX and FICO both had strong regulatory/legal catalysts, with FICO falling 16.7% and EFX falling 6.4%.",
+      "evidenceRefs": [
+        "catalyst.EFX.primary",
+        "catalyst.FICO.primary",
+        "anomaly.FICO",
+        "anomaly.EFX"
+      ],
+      "evidenceTexts": [
+        "EFX's strongest matched catalyst is REGULATORY / LEGAL, with strong evidence.",
+        "FICO's strongest matched catalyst is REGULATORY / LEGAL, with strong evidence.",
+        "FICO fell 16.7%, a 6.1× 20D-volatility return shock, with anomaly score 100.",
+        "EFX fell 6.4%, a 2.9× 20D-volatility return shock, with anomaly score 88."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "categories/strengths/values match catalyst & anomaly fact text; impact matches driver sign"
+    },
+    {
+      "path": "keyDrivers[1]",
+      "claimText": "Guidance catalyst: LULU's strongest matched catalyst is GUIDANCE with strong evidence, and the stock fell 17.4%.",
+      "evidenceRefs": [
+        "catalyst.LULU.primary",
+        "anomaly.LULU"
+      ],
+      "evidenceTexts": [
+        "LULU's strongest matched catalyst is GUIDANCE, with strong evidence.",
+        "LULU fell 17.4%, a 6.6× 20D-volatility return shock, with anomaly score 100."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "categories/strengths/values match catalyst & anomaly fact text; impact matches driver sign"
+    },
+    {
+      "path": "keyDrivers[2]",
+      "claimText": "Management catalyst: ADBE's strongest matched catalyst is MANAGEMENT with moderate evidence, and the stock fell 6.7%.",
+      "evidenceRefs": [
+        "catalyst.ADBE.primary",
+        "anomaly.ADBE"
+      ],
+      "evidenceTexts": [
+        "ADBE's strongest matched catalyst is MANAGEMENT, with moderate evidence.",
+        "ADBE fell 6.7%, a 2.5× 20D-volatility return shock, with anomaly score 76."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "categories/strengths/values match catalyst & anomaly fact text; impact matches driver sign"
+    },
+    {
+      "path": "keyDrivers[3]",
+      "claimText": "Inflation pressure from oil: WTI rose 5.1%, increasing inflation pressure, a negative regime driver.",
+      "evidenceRefs": [
+        "regime.driver.negative.1"
+      ],
+      "evidenceTexts": [
+        "WTI rose 5.1%, increasing inflation pressure"
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "categories/strengths/values match catalyst & anomaly fact text; impact matches driver sign"
+    },
+    {
+      "path": "keyDrivers[4]",
+      "claimText": "Low volatility: VIX is low at 14.3 and fell 5.8%, a positive regime driver.",
+      "evidenceRefs": [
+        "regime.driver.positive.1",
+        "regime.driver.positive.2"
+      ],
+      "evidenceTexts": [
+        "VIX is low at 14.3",
+        "VIX fell 5.8% to 14.3"
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "categories/strengths/values match catalyst & anomaly fact text; impact matches driver sign"
+    },
+    {
+      "path": "marketInternals.text",
+      "claimText": "S&P 500 breadth score is 24/100 with Broad Selloff participation; only 0.3% above 20-day MA, 0.5% above 50-day MA, 34.9% advancing, 5 new 20-day highs vs 23 new lows.",
+      "evidenceRefs": [
+        "breadth.summary",
+        "breadth.above20",
+        "breadth.above50",
+        "breadth.advanceRatio",
+        "breadth.highLow"
+      ],
+      "evidenceTexts": [
+        "S&P 500 breadth score is 24/100 with Broad Selloff participation.",
+        "0.3% of constituents were above their 20-day moving average.",
+        "0.5% of constituents were above their 50-day moving average.",
+        "34.9% of eligible S&P 500 members advanced.",
+        "There were 5 new 20-day highs and 23 new 20-day lows."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "24/100, 0.3/0.5%, 34.9%, 5/23 all verbatim in cited breadth facts"
+    },
+    {
+      "path": "macro.text",
+      "claimText": "US 10Y at 4.8, VIX at 14.3, Gold at 4429.0, BTC at 80045.2, WTI at 91.5, US Dollar at 118.7.",
+      "evidenceRefs": [
+        "macro.us10y",
+        "macro.vix",
+        "macro.gold",
+        "macro.btc",
+        "macro.wti",
+        "macro.usdBroad"
+      ],
+      "evidenceTexts": [
+        "US 10Y was 4.8 in the latest available daily observation.",
+        "VIX was 14.3 in the latest available daily observation.",
+        "Gold was 4429.0 in the latest available observation.",
+        "BTC was 80045.2 in the latest available observation.",
+        "WTI was 91.5 in the latest available daily observation.",
+        "US Dollar was 118.7 in the latest available daily observation."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "all six values verbatim in cited macro fact text"
+    },
+    {
+      "path": "notableMoves[0]",
+      "claimText": "FICO: FICO fell 16.7%, a 6.1× 20D-volatility return shock, with anomaly score 100.",
+      "evidenceRefs": [
+        "anomaly.FICO"
+      ],
+      "evidenceTexts": [
+        "FICO fell 16.7%, a 6.1× 20D-volatility return shock, with anomaly score 100."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "notableMoves[1]",
+      "claimText": "LULU: LULU fell 17.4%, a 6.6× 20D-volatility return shock, with anomaly score 100.",
+      "evidenceRefs": [
+        "anomaly.LULU"
+      ],
+      "evidenceTexts": [
+        "LULU fell 17.4%, a 6.6× 20D-volatility return shock, with anomaly score 100."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "notableMoves[2]",
+      "claimText": "ADSK: ADSK fell 8.3%, a 3.0× 20D-volatility return shock, with anomaly score 83.",
+      "evidenceRefs": [
+        "anomaly.ADSK"
+      ],
+      "evidenceTexts": [
+        "ADSK fell 8.3%, a 3.0× 20D-volatility return shock, with anomaly score 83."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "notableMoves[3]",
+      "claimText": "KLAC: KLAC rose 7.3%, a 2.9× 20D-volatility return shock, with anomaly score 73.",
+      "evidenceRefs": [
+        "anomaly.KLAC"
+      ],
+      "evidenceTexts": [
+        "KLAC rose 7.3%, a 2.9× 20D-volatility return shock, with anomaly score 73."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "notableMoves[4]",
+      "claimText": "EFX: EFX fell 6.4%, a 2.9× 20D-volatility return shock, with anomaly score 88.",
+      "evidenceRefs": [
+        "anomaly.EFX"
+      ],
+      "evidenceTexts": [
+        "EFX fell 6.4%, a 2.9× 20D-volatility return shock, with anomaly score 88."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "notableMoves[5]",
+      "claimText": "ADBE: ADBE fell 6.7%, a 2.5× 20D-volatility return shock, with anomaly score 76.",
+      "evidenceRefs": [
+        "anomaly.ADBE"
+      ],
+      "evidenceTexts": [
+        "ADBE fell 6.7%, a 2.5× 20D-volatility return shock, with anomaly score 76."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "move%, sigma× and score match anomaly fact verbatim; catalyst none-cases not contradicted"
+    },
+    {
+      "path": "watchNext[0]",
+      "claimText": "Watch whether weak breadth improves, as only 0.3% of constituents are above their 20-day moving average.",
+      "evidenceRefs": [
+        "breadth.above20"
+      ],
+      "evidenceTexts": [
+        "0.3% of constituents were above their 20-day moving average."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "conditional observation with supported 0.3% figure"
+    },
+    {
+      "path": "watchNext[1]",
+      "claimText": "Monitor regulatory/legal developments for EFX and FICO given strong catalyst matches.",
+      "evidenceRefs": [
+        "catalyst.EFX.primary",
+        "catalyst.FICO.primary"
+      ],
+      "evidenceTexts": [
+        "EFX's strongest matched catalyst is REGULATORY / LEGAL, with strong evidence.",
+        "FICO's strongest matched catalyst is REGULATORY / LEGAL, with strong evidence."
+      ],
+      "verdict": "NON_FACTUAL",
+      "reason": "monitoring guidance grounded in strong regulatory matches; no factual claim requiring verification"
+    },
+    {
+      "path": "watchNext[2]",
+      "claimText": "Watch for further guidance-related moves in LULU following its strong guidance catalyst.",
+      "evidenceRefs": [
+        "catalyst.LULU.primary"
+      ],
+      "evidenceTexts": [
+        "LULU's strongest matched catalyst is GUIDANCE, with strong evidence."
+      ],
+      "verdict": "NON_FACTUAL",
+      "reason": "conditional observation on existing strong guidance catalyst"
+    },
+    {
+      "path": "dataQuality.text",
+      "claimText": "Market data is fresh, but macro and regime data are stale or delayed; catalyst data is delayed with some missing confidence.",
+      "evidenceRefs": [
+        "market.spy",
+        "macro.us10y",
+        "regime.overall",
+        "catalyst.ADBE.primary"
+      ],
+      "evidenceTexts": [
+        "SPY fell 0.4% in the latest market observation.",
+        "US 10Y was 4.8 in the latest available daily observation.",
+        "Market regime is CAUTIOUS / NEUTRAL at 49/100.",
+        "ADBE's strongest matched catalyst is MANAGEMENT, with moderate evidence."
+      ],
+      "verdict": "SUPPORTED",
+      "reason": "market fresh, macro stale, regime stale/delayed, catalysts delayed/null confidence match source metas"
+    }
+  ],
+  "counts": {
+    "SUPPORTED": 19,
+    "PARTIAL": 1,
+    "UNSUPPORTED": 0,
+    "NON_FACTUAL": 2
+  }
+}

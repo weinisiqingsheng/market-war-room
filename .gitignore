@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+build/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# environment — never commit real secrets
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# test / coverage
+coverage/
+
+# editors / os
+.vscode/
+.idea/

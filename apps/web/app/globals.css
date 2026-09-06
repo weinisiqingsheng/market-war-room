@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/* ── Sakura Finance theme ────────────────────────────────────────────────
+   Design tokens per the approved Figma direction. Soft pastel pink on a
+   warm-white base, restrained shadows, professional density.               */
+
+@theme {
+  /* Breakpoints — `xl` tuned to 1200px per the Phase 0A desktop target. */
+  --breakpoint-xl: 75rem;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Surfaces */
+  --color-page: #fff8fb; /* warm-white page background */
+  --color-surface: #ffffff;
+
+  --color-sakura-50: #fff3f7;
+  --color-sakura-100: #fff5f8;
+  --color-sakura-200: #fff7fa;
+  --color-sakura-300: #fbe8f0; /* soft sakura */
+  --color-lavender: #f9f4ff; /* light purple secondary surface */
+  --color-cream: #fff9f0; /* warm cream */
+  --color-mint: #f3faf7; /* soft green */
+
+  /* Ink (text) */
+  --color-ink: #4a3a4c; /* primary dark text */
+  --color-ink-secondary: #7c6874; /* secondary text */
+  --color-ink-muted: #a88e9b; /* muted text — captions/labels only */
+
+  /* Brand */
+  --color-brand: #c15c82; /* brand pink */
+  --color-brand-deep: #a84e73; /* deeper pink for text-on-pink contrast */
+  --color-accent: #d86e95; /* pink accent */
+  --color-softpink: #f3a9c1; /* soft pink */
+
+  /* Signal tones — direction + interpretation are kept distinct in components */
+  --color-pos: #2f7d5c; /* positive */
+  --color-pos-bg: #e9f5ee;
+  --color-neg: #b04e62; /* negative / rose */
+  --color-neg-bg: #fbeef0;
+  --color-warn: #a86a1b; /* warning / amber */
+  --color-warn-bg: #fbf2e2;
+
+  /* Hairlines */
+  --color-line: #f2e4eb; /* very light pink-gray border */
+  --color-line-strong: #e9d6e0;
+
+  /* Restrained shadows */
+  --shadow-card: 0 1px 2px rgba(74, 58, 76, 0.04), 0 16px 40px -20px rgba(193, 92, 130, 0.22);
+  --shadow-soft: 0 1px 2px rgba(74, 58, 76, 0.04), 0 4px 14px -8px rgba(193, 92, 130, 0.14);
+  --shadow-pop: 0 2px 4px rgba(74, 58, 76, 0.05), 0 12px 28px -12px rgba(193, 92, 130, 0.28);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-page text-ink antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-image: radial-gradient(
+      1100px 480px at 50% -200px,
+      rgba(243, 169, 193, 0.12),
+      transparent 70%
+    );
+    background-repeat: no-repeat;
+  }
+
+  ::selection {
+    background-color: var(--color-softpink);
+    color: var(--color-ink);
+  }
+
+  /* Keep anchored sections clear of the sticky header. */
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+}
+
+@layer utilities {
+  /* Financial figures must always use tabular numerals (spec). */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

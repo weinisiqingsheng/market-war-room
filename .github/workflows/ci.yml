@@ -1,0 +1,57 @@
+# CI — Market War Room
+
+Runs on push to `main` and on pull requests: web install / lint / typecheck /
+test / build, then the FastAPI analytics suite.
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Secret scan
+        run: bash scripts/check-secrets.sh
+
+  analytics:
+    name: Analytics (FastAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/analytics
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements.txt
+      - run: .venv/bin/pytest -q
+
+  formatting:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --check .

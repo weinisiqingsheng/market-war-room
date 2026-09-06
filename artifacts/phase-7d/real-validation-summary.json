@@ -1,0 +1,29 @@
+{
+  "fp1": "9623da5e879020befa42a9098d8462b3c0ad0a165b983a48cc426baf9006a901",
+  "fp2": "c0eade6f694a2d58842ff99b14f0f049761153f0e7e746f0f59e5893c50f76bb",
+  "fpSame": false,
+  "conf": {
+    "score": 0.8659999999999999,
+    "label": "medium"
+  },
+  "cache1": {
+    "hit": false
+  },
+  "first": "generated",
+  "second": "generated",
+  "cache2": {
+    "hit": false
+  },
+  "schemaValid": true,
+  "dataQuality": {
+    "confidence": "medium",
+    "text": "Market data is fresh, but macro and regime data are stale or delayed; catalyst and anomaly data are delayed.",
+    "evidenceRefs": [
+      "market.spy",
+      "macro.us10y",
+      "regime.overall"
+    ]
+  },
+  "causal": false,
+  "future": false
+}
