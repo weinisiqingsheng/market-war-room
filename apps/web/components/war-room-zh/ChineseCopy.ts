@@ -1,0 +1,17 @@
+export const chineseCopy = {
+  marketRegime: "市场环境",
+  marketPulse: "市场脉搏",
+  macroPulse: "宏观脉搏",
+  sectorRotation: "板块轮动",
+  marketBreadth: "市场广度",
+  marketAnomalies: "市场异动",
+  catalystIntelligence: "催化剂情报",
+  aiBrief: "AI 市场简报",
+  askWarRoom: "询问市场作战室",
+  dataPreview: "设计预览",
+  demoNotice: "演示数据 · 并非实时市场数据",
+  liveData: "实时市场数据",
+  footerName: "市场作战室 · Sakura 市场情报",
+  footerDemo: "设计预览 · 仅使用演示数据，不构成投资建议。",
+  footerLive: "实时数据来自 Alpaca IEX（非综合 SIP）；演示模块均有明确标识。",
+} as const;
