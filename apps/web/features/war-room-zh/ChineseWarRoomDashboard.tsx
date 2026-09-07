@@ -2,17 +2,16 @@
 
 import type { MarketDataMode } from "@war-room/types";
 import { AskWarRoom } from "@/components/AskWarRoom";
-import { CatalystIntelligence } from "@/components/CatalystIntelligence";
-import { CatalystIntelligenceLive } from "@/components/CatalystIntelligenceLive";
-import { MacroPulse } from "@/components/MacroPulse";
-import { MarketAnomaliesCard } from "@/components/MarketAnomaliesCard";
-import { MarketBreadthCard } from "@/components/MarketBreadthCard";
-import { MarketPulse } from "@/components/MarketPulse";
-import { MarketRegimeCard } from "@/components/MarketRegimeCard";
-import { SectorRotation } from "@/components/SectorRotation";
+import { ChineseCatalystIntelligence } from "@/components/war-room-zh/ChineseCatalystIntelligence";
 import { ChineseDataBanner } from "@/components/war-room-zh/ChineseDataBanner";
 import { ChineseFooter } from "@/components/war-room-zh/ChineseFooter";
 import { ChineseHeader } from "@/components/war-room-zh/ChineseHeader";
+import { ChineseMacroPulse } from "@/components/war-room-zh/ChineseMacroPulse";
+import { ChineseMarketAnomaliesCard } from "@/components/war-room-zh/ChineseMarketAnomaliesCard";
+import { ChineseMarketBreadthCard } from "@/components/war-room-zh/ChineseMarketBreadthCard";
+import { ChineseMarketPulse } from "@/components/war-room-zh/ChineseMarketPulse";
+import { ChineseMarketRegimeCard } from "@/components/war-room-zh/ChineseMarketRegimeCard";
+import { ChineseSectorRotation } from "@/components/war-room-zh/ChineseSectorRotation";
 import { chineseCopy } from "@/components/war-room-zh/ChineseCopy";
 import { demoHeaderNav, demoMarketData, demoSession } from "@/data/demo-market";
 import { AiMarketBriefPanel } from "@/features/home/components/ai-market-brief-panel";
@@ -91,68 +90,55 @@ export function ChineseWarRoomDashboard({
           <ChineseDataBanner mode={mode} feed={feed} />
         </div>
         <div className="mt-6 space-y-10">
-          <ChineseShellSection title={chineseCopy.marketRegime}>
-            <MarketRegimeCard
-              mode={regimeMode}
-              status={regimeStatus}
-              regime={regime}
-              regimeDrivers={regimeDrivers}
-              result={regimeResult}
-              asOf={regimeAsOf}
-            />
-          </ChineseShellSection>
-          <MarketPulse
+          <ChineseMarketRegimeCard
+            mode={regimeMode}
+            status={regimeStatus}
+            regime={regime}
+            regimeDrivers={regimeDrivers}
+            result={regimeResult}
+            asOf={regimeAsOf}
+          />
+          <ChineseMarketPulse
             indices={indices}
             status={status}
             mode={mode}
             feed={feed}
             stale={meta?.stale ?? false}
-            title={chineseCopy.marketPulse}
-            kicker="指数快照"
           />
-          <MacroPulse
+          <ChineseMacroPulse
             signals={macroSignals}
             status={macroStatus}
             mode={macroMode}
             meta={macroMeta}
-            title={chineseCopy.macroPulse}
           />
           <div className="grid items-stretch gap-6 xl:grid-cols-2 [&>*]:min-w-0">
-            <ChineseShellSection title={chineseCopy.sectorRotation}>
-              <SectorRotation
-                sectors={sectors}
-                status={status}
-                mode={mode}
-                feed={feed}
-                stale={meta?.stale ?? false}
-                benchmark={benchmark}
-              />
-            </ChineseShellSection>
-            <ChineseShellSection title={chineseCopy.marketBreadth}>
-              <MarketBreadthCard
-                mode={breadthMode}
-                status={breadthStatus}
-                breadth={breadthDemo}
-                overview={breadthOverview}
-              />
-            </ChineseShellSection>
+            <ChineseSectorRotation
+              sectors={sectors}
+              status={status}
+              mode={mode}
+              feed={feed}
+              stale={meta?.stale ?? false}
+              benchmark={benchmark}
+            />
+            <ChineseMarketBreadthCard
+              mode={breadthMode}
+              status={breadthStatus}
+              breadth={breadthDemo}
+              overview={breadthOverview}
+            />
           </div>
           <div className="grid items-stretch gap-6 xl:grid-cols-2 [&>*]:min-w-0">
-            <ChineseShellSection title={chineseCopy.marketAnomalies}>
-              <MarketAnomaliesCard
-                mode={anomaliesMode}
-                status={anomaliesStatus}
-                anomalies={anomaliesDemo}
-                overview={anomaliesOverview}
-              />
-            </ChineseShellSection>
-            <ChineseShellSection title={chineseCopy.catalystIntelligence}>
-              {catalystsMode === "live" && catalystsStatus === "ready" && catalystsOverview ? (
-                <CatalystIntelligenceLive overview={catalystsOverview} />
-              ) : (
-                <CatalystIntelligence events={data.catalysts} status={catalystsStatus} />
-              )}
-            </ChineseShellSection>
+            <ChineseMarketAnomaliesCard
+              mode={anomaliesMode}
+              status={anomaliesStatus}
+              anomalies={anomaliesDemo}
+              overview={anomaliesOverview}
+            />
+            <ChineseCatalystIntelligence
+              events={data.catalysts}
+              status={catalystsStatus}
+              overview={catalystsOverview}
+            />
           </div>
           <ChineseShellSection title={chineseCopy.aiBrief}>
             <AiMarketBriefPanel />
