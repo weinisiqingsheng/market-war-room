@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { RegimeResult } from "@war-room/types";
+import type { AnomalyOverview } from "@/lib/anomalies/types";
+import type { BreadthOverview } from "@/lib/breadth/types";
+import type { CatalystOverview } from "@/lib/catalysts/types";
+import { formatEtTime } from "@/lib/format";
 import {
   demoAnomalies,
   demoBreadth,
@@ -20,21 +24,21 @@ import { ChineseMarketRegimeCard } from "@/components/war-room-zh/ChineseMarketR
 import { ChineseSectorRotation } from "@/components/war-room-zh/ChineseSectorRotation";
 
 describe("Chinese Market War Room cards", () => {
-  it("preserves a live regime driver reason and safely renders missing sector returns", () => {
+  it("preserves live regime explainability and safely renders missing sector returns", () => {
     const result: RegimeResult = {
       score: 42,
       displayScore: 42,
       label: "CAUTIOUS / NEUTRAL",
-      coverage: 1,
-      confidence: "high",
+      coverage: 0.72,
+      confidence: "medium",
       components: [],
       positiveDrivers: [
         { id: "vix", name: "VIX", direction: "positive", impact: 2.4, reason: "VIX fell" },
       ],
       negativeDrivers: [],
-      staleInputs: [],
-      missingInputs: [],
-      asOf: null,
+      staleInputs: ["VIX"],
+      missingInputs: ["BTC", "Gold"],
+      asOf: "2026-09-07T16:30:00.000Z",
       engineVersion: "regime-v1",
     };
     const { rerender } = render(
@@ -44,9 +48,16 @@ describe("Chinese Market War Room cards", () => {
         regime={null}
         regimeDrivers={null}
         result={result}
+        asOf={result.asOf}
       />,
     );
     expect(screen.getByText(/VIX fell/)).toBeInTheDocument();
+    expect(screen.getByText(/72% 覆盖率/)).toBeInTheDocument();
+    expect(screen.getByText(/中等置信度/)).toBeInTheDocument();
+    expect(screen.getByText(/1 个陈旧输入/)).toBeInTheDocument();
+    expect(screen.getByText(/2 个缺失输入/)).toBeInTheDocument();
+    expect(screen.getByText(/regime-v1/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`截至 ${formatEtTime(result.asOf)}`))).toBeInTheDocument();
 
     rerender(
       <ChineseSectorRotation
@@ -88,6 +99,255 @@ describe("Chinese Market War Room cards", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("市场数据暂不可用");
     expect(screen.queryByText("534.12")).not.toBeInTheDocument();
+  });
+
+  it("preserves market, macro, sector, and breadth facts with their provenance", () => {
+    const { rerender } = render(
+      <ChineseMarketPulse
+        indices={[
+          {
+            ...demoIndices[0],
+            price: 525,
+            low: 500,
+            high: 550,
+            changePct: 0.5,
+            sparkline: [500, 515, 525],
+          },
+        ]}
+        status="ready"
+        mode="live"
+        feed="iex"
+      />,
+    );
+    expect(screen.getByRole("img", { name: "SPY 今日区间位置 50%" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "SPY 日内趋势，上行" })).toBeInTheDocument();
+
+    rerender(
+      <ChineseMacroPulse
+        signals={[
+          {
+            ...demoMacro[0],
+            source: "FRED",
+            frequency: "daily",
+            stale: true,
+            tone: "negative",
+            interpretation: "Rate Pressure",
+          },
+        ]}
+        status="ready"
+        mode="live"
+        meta={{ mode: "live", asOf: null, stale: true, providers: ["fred"] }}
+      />,
+    );
+    expect(screen.getByText("陈旧")).toBeInTheDocument();
+    expect(screen.getByText("FRED · 日频")).toBeInTheDocument();
+    expect(screen.getByText("看跌 · Rate Pressure")).toBeInTheDocument();
+
+    rerender(
+      <ChineseSectorRotation
+        sectors={[
+          {
+            ...demoSectors[0],
+            dailyReturnPct: 1.25,
+            relativeReturnPct: 0.75,
+            signal: "Leader",
+            strength: 72,
+          },
+        ]}
+        status="ready"
+        mode="live"
+        feed="iex"
+        benchmark={{ ticker: "SPY", dailyReturnPct: 0.5 }}
+      />,
+    );
+    expect(screen.getByText("+1.25%")).toBeInTheDocument();
+    expect(screen.getByText("Leader")).toBeInTheDocument();
+    expect(screen.getByText("72")).toBeInTheDocument();
+
+    const breadth: BreadthOverview = {
+      mode: "live",
+      score: 61,
+      displayScore: 61,
+      engineVersion: "breadth-v1",
+      state: { key: "BROAD_RALLY", label: "Broad Rally" },
+      metrics: {
+        universeCount: 500,
+        currentCoverageCount: 480,
+        historical20CoverageCount: 470,
+        historical50CoverageCount: 460,
+        coveragePct: 0.96,
+        advancers: 310,
+        decliners: 150,
+        unchanged: 20,
+        advanceRatio: 0.67,
+        above20Pct: 0.64,
+        above50Pct: 0.58,
+        newHighs20: 45,
+        newLows20: 8,
+      },
+      universe: { name: "S&P 500", version: "sp500-v1", asOf: "2026-09-07", count: 500 },
+      meta: {
+        provider: "alpaca",
+        feed: "delayed_sip",
+        delayMinutes: 15,
+        asOf: "2026-09-07T16:30:00.000Z",
+        marketOpen: true,
+      },
+      confidence: "high",
+    };
+    rerender(
+      <ChineseMarketBreadthCard mode="live" status="ready" breadth={null} overview={breadth} />,
+    );
+    expect(screen.getByText("64%")).toBeInTheDocument();
+    expect(screen.getByText("45")).toBeInTheDocument();
+    expect(screen.getByText(/96% 覆盖率 · 高置信度/)).toBeInTheDocument();
+    expect(screen.getByText(/breadth-v1 · 500 个成分股 · 15分钟延迟 SIP/)).toBeInTheDocument();
+  });
+
+  it("preserves live anomaly movement and supplied severity", () => {
+    const overview: AnomalyOverview = {
+      mode: "live",
+      engineVersion: "anomaly-v1",
+      universe: { name: "S&P 500", version: "sp500-v1", asOf: "2026-09-07", count: 500 },
+      meta: {
+        provider: "alpaca",
+        feed: "delayed_sip",
+        delayMinutes: 15,
+        asOf: null,
+        marketOpen: true,
+        stale: false,
+      },
+      universeCount: 500,
+      eligibleCount: 470,
+      scoredCount: 460,
+      coveragePct: 0.92,
+      confidence: "high",
+      topPositive: [],
+      topNegative: [],
+      asOf: "2026-09-07T16:30:00.000Z",
+      topOverall: [
+        {
+          ticker: "TEST",
+          name: "Test Holdings",
+          sector: "Technology",
+          sectorEtf: "XLK",
+          price: 100,
+          dailyMovePct: 3.4,
+          direction: "up",
+          anomalyScore: 88,
+          displayScore: 88,
+          severity: "ELEVATED",
+          primaryTrigger: "VOLUME SURGE",
+          metrics: {
+            returnSigma: 2,
+            sectorRelativePct: null,
+            sectorRelativeSigma: null,
+            gapPct: null,
+            gapAtrRatio: null,
+            rangeExpansionRatio: null,
+            volumeParticipation: null,
+            breakout20: false,
+            breakdown20: false,
+          },
+          componentScores: {
+            returnShock: null,
+            sectorDivergence: null,
+            gapShock: null,
+            rangeExpansion: null,
+            volumeParticipation: null,
+            breakout: null,
+          },
+          reasons: [],
+          dataCoverage: 1,
+        },
+      ],
+    };
+    render(
+      <ChineseMarketAnomaliesCard
+        mode="live"
+        status="ready"
+        anomalies={null}
+        overview={overview}
+      />,
+    );
+    expect(screen.getByText("+3.4%")).toBeInTheDocument();
+    expect(screen.getByText(/88 · ELEVATED/)).toBeInTheDocument();
+    expect(screen.queryByText("高度异常")).not.toBeInTheDocument();
+  });
+
+  it("preserves live catalyst evidence and ignores retained live data in demo mode", () => {
+    const overview: CatalystOverview = {
+      meta: {
+        mode: "live",
+        engineVersion: "catalyst-match-v1",
+        anomalyVersion: "anomaly-v1",
+        candidateCount: 1,
+        matchedCount: 1,
+        unmatchedCount: 0,
+        generatedAt: "2026-09-07T16:35:00.000Z",
+        effectiveAsOf: "2026-09-07T16:30:00.000Z",
+        asOf: "2026-09-07T16:30:00.000Z",
+        catalystCutoff: "2026-09-07T16:30:00.000Z",
+        providers: { news: "error", sec: "ok", corporateActions: "disabled" },
+      },
+      items: [
+        {
+          ticker: "TEST",
+          name: "Test Holdings",
+          movePct: 3.4,
+          anomalyScore: 88,
+          anomalySeverity: "ELEVATED",
+          status: "MATCHED",
+          alignment: "aligned",
+          catalystCutoff: "2026-09-07T16:30:00.000Z",
+          evidence: { newsCount: 1, filingCount: 2, corporateActionCount: 0 },
+          primaryCatalyst: {
+            category: "SEC FILING",
+            headline: "Live catalyst evidence",
+            publishedAt: "2026-09-07T15:30:00.000Z",
+            source: "SEC",
+            sourceType: "sec_filing",
+            url: "https://example.test/filing",
+            relevanceScore: 91,
+            evidenceStrength: "strong",
+            eventPolarity: "positive",
+            symbols: ["TEST"],
+            supportingEvidence: ["Filed 8-K"],
+          },
+          secondaryCatalysts: [],
+        },
+      ],
+    };
+    const liveProps = { mode: "live" as const, events: [], status: "ready" as const, overview };
+    const { rerender } = render(<ChineseCatalystIntelligence {...liveProps} />);
+    expect(screen.getByText(/主要证据 · SEC/)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(formatEtTime(overview.items[0].primaryCatalyst?.publishedAt))),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/1 条新闻 · 2 份 SEC 文件 · 0 项公司行动/)).toBeInTheDocument();
+    expect(screen.getByText(/数据源降级/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Live catalyst evidence" })).toHaveAttribute(
+      "href",
+      "https://example.test/filing",
+    );
+
+    const demoProps = {
+      mode: "demo" as const,
+      events: [
+        {
+          id: "demo",
+          category: "演示",
+          headline: "Demo catalyst fixture",
+          chain: ["A", "B"],
+          impactScore: 40,
+        },
+      ],
+      status: "ready" as const,
+      overview,
+    };
+    rerender(<ChineseCatalystIntelligence {...demoProps} />);
+    expect(screen.getByText("Demo catalyst fixture")).toBeInTheDocument();
+    expect(screen.queryByText("Live catalyst evidence")).not.toBeInTheDocument();
   });
 
   it("distinguishes ready, loading, error, and empty regime states", () => {
@@ -227,7 +487,7 @@ describe("Chinese Market War Room cards", () => {
         overview={null}
       />,
     );
-    expect(screen.getByText("极端异常")).toBeInTheDocument();
+    expect(screen.getByText(/极端异常/)).toBeInTheDocument();
 
     rerender(
       <ChineseMarketAnomaliesCard mode="live" status="loading" anomalies={null} overview={null} />,

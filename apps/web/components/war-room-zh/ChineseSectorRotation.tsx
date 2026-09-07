@@ -28,6 +28,13 @@ export function ChineseSectorRotation({
         </h2>
         <p className="text-xs leading-relaxed text-ink-secondary">相对 {benchmark.ticker} 排名</p>
       </header>
+      <div className="mt-4 hidden gap-3 px-3 text-[10px] font-semibold text-ink-muted md:grid md:grid-cols-[1.6fr_0.7fr_0.7fr_0.9fr_1.1fr]">
+        <span>板块</span>
+        <span>日度</span>
+        <span>相对 SPY</span>
+        <span>信号</span>
+        <span>强度</span>
+      </div>
       {status === "error" ? (
         <Status text="市场数据暂不可用" />
       ) : status === "loading" || sectors === null ? (
@@ -39,15 +46,22 @@ export function ChineseSectorRotation({
           {sectors.map((sector) => (
             <li
               key={sector.id}
-              className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-line px-3 py-2"
+              className="grid min-w-0 grid-cols-2 items-center gap-x-3 gap-y-2 rounded-xl border border-line px-3 py-2 md:grid-cols-[1.6fr_0.7fr_0.7fr_0.9fr_1.1fr]"
             >
               <span className="min-w-0 break-words text-sm font-medium text-ink">
                 {sector.sector} · {sector.etf}
               </span>
               <span className="shrink-0 text-xs tabular-nums text-ink-secondary">
+                {sector.dailyReturnPct === null ? "—" : formatSignedPct(sector.dailyReturnPct)}
+              </span>
+              <span className="shrink-0 text-xs tabular-nums text-ink-secondary">
                 {sector.relativeReturnPct === null
                   ? "—"
                   : formatSignedPct(sector.relativeReturnPct)}
+              </span>
+              <span className="text-xs text-ink-secondary">{sector.signal}</span>
+              <span className="text-xs tabular-nums text-ink-secondary">
+                {sector.strength === null ? "—" : Math.round(sector.strength)}
               </span>
             </li>
           ))}

@@ -1,6 +1,7 @@
 import type { MarketDataMode, MarketFeed, MarketIndex } from "@war-room/types";
 import { formatPrice, formatSignedPct } from "@/lib/format";
 import type { ProvenanceStatus } from "@/components/ui/ProvenanceTag";
+import { Sparkline } from "@/components/Sparkline";
 
 interface ChineseMarketPulseProps {
   indices: MarketIndex[] | null;
@@ -28,38 +29,87 @@ export function ChineseMarketPulse({ indices, status, mode }: ChineseMarketPulse
       ) : (
         <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {indices.map((index) => (
-            <li
-              key={index.ticker}
-              className="min-w-0 rounded-[20px] border border-line bg-surface p-4 shadow-soft"
-            >
-              <h3 className="font-semibold text-ink">{index.ticker}</h3>
-              <p className="break-words text-xs leading-relaxed text-ink-secondary">{index.name}</p>
-              <p className="mt-3 text-3xl font-semibold tabular-nums text-ink">
-                {index.price === null ? "—" : formatPrice(index.price)}
-              </p>
-              <p className="mt-2 text-xs tabular-nums text-ink-secondary">
-                {index.changePct === null ? "—" : formatSignedPct(index.changePct)}
-              </p>
-              <dl className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-ink-secondary">
-                <div>
-                  <dt>开盘</dt>
-                  <dd>{index.open === null ? "—" : formatPrice(index.open)}</dd>
-                </div>
-                <div>
-                  <dt>最高</dt>
-                  <dd>{index.high === null ? "—" : formatPrice(index.high)}</dd>
-                </div>
-                <div>
-                  <dt>最低</dt>
-                  <dd>{index.low === null ? "—" : formatPrice(index.low)}</dd>
-                </div>
-              </dl>
-              {mode === "live" && <p className="mt-3 text-[10px] text-ink-muted">实时数据</p>}
-            </li>
+            <ChineseIndexCard key={index.ticker} index={index} mode={mode} />
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function ChineseIndexCard({ index, mode }: { index: MarketIndex; mode: MarketDataMode }) {
+  const dayPositionPct = (() => {
+    if (index.price === null || index.high === null || index.low === null) return null;
+    const dayRange = Math.max(0, index.high - index.low);
+    return dayRange > 0
+      ? Math.min(100, Math.max(0, ((index.price - index.low) / dayRange) * 100))
+      : null;
+  })();
+  const hasSparkline = Array.isArray(index.sparkline) && index.sparkline.length > 0;
+  const trend =
+    index.changePct === null || index.changePct === 0
+      ? "flat"
+      : index.changePct > 0
+        ? "up"
+        : "down";
+  const trendLabel = trend === "up" ? "上行" : trend === "down" ? "下行" : "持平";
+
+  return (
+    <li className="flex min-w-0 flex-col rounded-[20px] border border-line bg-surface p-4 shadow-soft">
+      <h3 className="font-semibold text-ink">{index.ticker}</h3>
+      <p className="break-words text-xs leading-relaxed text-ink-secondary">{index.name}</p>
+      <p className="mt-3 text-3xl font-semibold tabular-nums text-ink">
+        {index.price === null ? "—" : formatPrice(index.price)}
+      </p>
+      <p className="mt-2 text-xs tabular-nums text-ink-secondary">
+        {index.changePct === null ? "—" : formatSignedPct(index.changePct)}
+      </p>
+      <dl className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-ink-secondary">
+        <div>
+          <dt>开盘</dt>
+          <dd>{index.open === null ? "—" : formatPrice(index.open)}</dd>
+        </div>
+        <div>
+          <dt>最高</dt>
+          <dd>{index.high === null ? "—" : formatPrice(index.high)}</dd>
+        </div>
+        <div>
+          <dt>最低</dt>
+          <dd>{index.low === null ? "—" : formatPrice(index.low)}</dd>
+        </div>
+      </dl>
+      {dayPositionPct === null ? (
+        <p className="mt-3 text-[11px] text-ink-muted">日内区间不可用</p>
+      ) : (
+        <div
+          role="img"
+          aria-label={`${index.ticker} 今日区间位置 ${Math.round(dayPositionPct)}%`}
+          className="mt-3"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-ink-muted">低</span>
+            <div className="relative h-1.5 flex-1 rounded-full bg-line">
+              <span
+                className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand"
+                style={{ left: `${dayPositionPct}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-ink-muted">高</span>
+          </div>
+        </div>
+      )}
+      {hasSparkline ? (
+        <Sparkline
+          data={index.sparkline!}
+          tone={trend}
+          label={`${index.ticker} 日内趋势，${trendLabel}`}
+          className="mt-auto pt-3"
+        />
+      ) : (
+        <p className="mt-auto pt-3 text-right text-[10px] text-ink-muted">日内图表即将推出</p>
+      )}
+      {mode === "live" && <p className="mt-3 text-[10px] text-ink-muted">实时数据</p>}
+    </li>
   );
 }
 

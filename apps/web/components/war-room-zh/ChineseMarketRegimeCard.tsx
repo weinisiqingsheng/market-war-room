@@ -1,4 +1,5 @@
 import type { MarketDataMode, MarketRegime, RegimeDriver, RegimeResult } from "@/types/market";
+import { formatEtTime } from "@/lib/format";
 import { Empty, Loading, Status } from "./ChineseMarketPulse";
 
 export type ChineseRegimeCardStatus = "loading" | "ready" | "error";
@@ -8,6 +9,7 @@ export function ChineseMarketRegimeCard({
   regime,
   regimeDrivers,
   result,
+  asOf,
 }: {
   mode: MarketDataMode;
   status: ChineseRegimeCardStatus;
@@ -48,6 +50,8 @@ export function ChineseMarketRegimeCard({
     mode === "live"
       ? [...(result?.positiveDrivers ?? []), ...(result?.negativeDrivers ?? [])]
       : (regimeDrivers ?? []);
+  const coverage = mode === "live" && result ? Math.round(result.coverage * 100) : null;
+  const asOfValue = asOf ?? result?.asOf;
   return (
     <section
       id="market-regime"
@@ -70,6 +74,15 @@ export function ChineseMarketRegimeCard({
           ? regime?.explanation
           : "由确定性引擎生成的市场环境读数，仅供分析，不构成未来收益预测。"}
       </p>
+      {mode === "live" && result && (
+        <div className="mt-4 flex flex-wrap gap-2 text-xs text-ink-muted">
+          <span>
+            {coverage}% 覆盖率 · {confidenceLabel(result.confidence)}
+          </span>
+          {result.staleInputs.length > 0 && <span>{result.staleInputs.length} 个陈旧输入</span>}
+          {result.missingInputs.length > 0 && <span>{result.missingInputs.length} 个缺失输入</span>}
+        </div>
+      )}
       <h3 className="mt-6 text-sm font-semibold text-ink">环境驱动因素</h3>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {drivers.map((driver) => (
@@ -83,6 +96,18 @@ export function ChineseMarketRegimeCard({
           </li>
         ))}
       </ul>
+      {mode === "live" && result && (
+        <p className="mt-4 text-[10px] text-ink-muted">
+          {result.engineVersion}
+          {asOfValue ? ` · 截至 ${formatEtTime(asOfValue)}` : ""}
+        </p>
+      )}
     </section>
   );
+}
+
+function confidenceLabel(confidence: RegimeResult["confidence"]): string {
+  return { high: "高置信度", medium: "中等置信度", low: "低置信度", insufficient: "覆盖不足" }[
+    confidence
+  ];
 }

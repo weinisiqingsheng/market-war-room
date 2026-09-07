@@ -37,9 +37,8 @@ export function ChineseMarketBreadthCard({
         <Empty text="暂无市场广度数据" />
       </section>
     );
-  const score = mode === "live" ? overview?.displayScore : breadth?.score;
-  const advancing = mode === "live" ? overview?.metrics.advancers : breadth?.advancingPct;
-  const declining = mode === "live" ? overview?.metrics.decliners : breadth?.decliningPct;
+  const live = mode === "live" ? overview! : null;
+  const score = live ? live.displayScore : breadth?.score;
   return (
     <section
       id="market-breadth"
@@ -50,17 +49,81 @@ export function ChineseMarketBreadthCard({
       <h2 id="market-breadth-heading" className="text-lg font-semibold text-ink">
         市场广度
       </h2>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <p className="rounded-xl border border-line p-3 text-sm text-ink-secondary">
-          上涨 <strong className="ml-1 tabular-nums text-ink">{advancing ?? "—"}</strong>
-        </p>
-        <p className="rounded-xl border border-line p-3 text-sm text-ink-secondary">
-          下跌 <strong className="ml-1 tabular-nums text-ink">{declining ?? "—"}</strong>
-        </p>
-      </div>
+      {live ? <LiveBreadth overview={live} /> : <DemoBreadth breadth={breadth!} />}
       <p className="mt-4 text-2xl font-semibold tabular-nums text-ink">
         {score ?? "—"} <span className="text-sm text-ink-muted">/ 100</span>
       </p>
     </section>
   );
+}
+
+function LiveBreadth({ overview }: { overview: BreadthOverview }) {
+  const metrics = overview.metrics;
+  const percent = (value: number | null) => (value === null ? "—" : `${Math.round(value * 100)}%`);
+  return (
+    <>
+      <p className="mt-2 text-sm text-ink-secondary">{overview.state.label}</p>
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-ink-secondary">
+        <p>
+          上涨 <strong className="ml-1 tabular-nums text-ink">{metrics.advancers}</strong>
+        </p>
+        <p>
+          下跌 <strong className="ml-1 tabular-nums text-ink">{metrics.decliners}</strong>
+        </p>
+        <p>
+          平盘 <strong className="ml-1 tabular-nums text-ink">{metrics.unchanged}</strong>
+        </p>
+        <p>
+          上涨比例{" "}
+          <strong className="ml-1 tabular-nums text-ink">{percent(metrics.advanceRatio)}</strong>
+        </p>
+        <p>
+          高于 20 日均线{" "}
+          <strong className="ml-1 tabular-nums text-ink">{percent(metrics.above20Pct)}</strong>
+        </p>
+        <p>
+          高于 50 日均线{" "}
+          <strong className="ml-1 tabular-nums text-ink">{percent(metrics.above50Pct)}</strong>
+        </p>
+        <p>
+          20 日新高 <strong className="ml-1 tabular-nums text-ink">{metrics.newHighs20}</strong>
+        </p>
+        <p>
+          20 日新低 <strong className="ml-1 tabular-nums text-ink">{metrics.newLows20}</strong>
+        </p>
+      </div>
+      <p className="mt-3 text-xs text-ink-muted">
+        {Math.round(metrics.coveragePct * 100)}% 覆盖率 · {confidenceLabel(overview.confidence)} ·{" "}
+        {overview.engineVersion} · {overview.universe.count} 个成分股 · 15分钟延迟 SIP
+      </p>
+    </>
+  );
+}
+
+function DemoBreadth({ breadth }: { breadth: MarketBreadth }) {
+  return (
+    <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-ink-secondary">
+      <p>
+        上涨 <strong className="ml-1 text-ink">{breadth.advancingPct}%</strong>
+      </p>
+      <p>
+        下跌 <strong className="ml-1 text-ink">{breadth.decliningPct}%</strong>
+      </p>
+      <p>
+        高于 50 日均线 <strong className="ml-1 text-ink">{breadth.above50DmaPct}%</strong>
+      </p>
+      <p>
+        新高 / 新低{" "}
+        <strong className="ml-1 text-ink">
+          {breadth.newHighs} / {breadth.newLows}
+        </strong>
+      </p>
+    </div>
+  );
+}
+
+function confidenceLabel(confidence: BreadthOverview["confidence"]): string {
+  return { high: "高置信度", medium: "中等置信度", low: "低置信度", insufficient: "覆盖不足" }[
+    confidence
+  ];
 }

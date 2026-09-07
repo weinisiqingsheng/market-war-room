@@ -1,5 +1,5 @@
 import type { MarketAnomaly, MarketDataMode } from "@/types/market";
-import type { AnomalyOverview } from "@/lib/anomalies/types";
+import type { AnomalyCandidate, AnomalyOverview } from "@/lib/anomalies/types";
 import { Empty, Loading, Status } from "./ChineseMarketPulse";
 
 export function ChineseMarketAnomaliesCard({
@@ -28,15 +28,7 @@ export function ChineseMarketAnomaliesCard({
         <Status text="市场异常暂不可用" />
       </section>
     );
-  const items =
-    mode === "live"
-      ? (overview?.topOverall ?? []).map((item) => ({
-          symbol: item.ticker,
-          score: item.displayScore,
-          move: item.dailyMovePct,
-          detail: item.primaryTrigger,
-        }))
-      : (anomalies ?? []);
+  const items = mode === "live" ? overview!.topOverall : (anomalies ?? []);
   if (items.length === 0)
     return (
       <section id="market-anomalies" aria-labelledby="market-anomalies-heading">
@@ -59,21 +51,58 @@ export function ChineseMarketAnomaliesCard({
         市场异常
       </h2>
       <ul className="mt-4 space-y-2">
-        {items.map((item) => (
-          <li
-            key={item.symbol}
-            className="flex items-center justify-between gap-3 rounded-xl border border-line p-3"
-          >
-            <span className="font-semibold text-ink">{item.symbol}</span>
-            <span className="min-w-0 break-words text-xs text-ink-secondary">
-              {"detail" in item ? item.detail : `变动 ${item.movePct.toFixed(1)}%`}
-            </span>
-            <span className="shrink-0 rounded-full bg-sakura-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-brand-deep">
-              <span>{item.score >= 90 ? "极端异常" : "高度异常"}</span> <span>{item.score}</span>
-            </span>
-          </li>
-        ))}
+        {mode === "live"
+          ? (items as AnomalyCandidate[]).map((item) => (
+              <LiveAnomalyRow key={item.ticker} item={item} />
+            ))
+          : (items as MarketAnomaly[]).map((item) => (
+              <DemoAnomalyRow key={item.symbol} item={item} />
+            ))}
       </ul>
+      {mode === "live" && overview && (
+        <p className="mt-3 text-[10px] text-ink-muted">
+          {Math.round(overview.coveragePct * 100)}% 覆盖率 · {overview.confidence} ·{" "}
+          {overview.engineVersion} · {overview.meta.feed.replace("_", " ")}
+        </p>
+      )}
     </section>
+  );
+}
+
+function LiveAnomalyRow({ item }: { item: AnomalyCandidate }) {
+  return (
+    <li className="rounded-xl border border-line p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="font-semibold text-ink">
+          {item.ticker} · {item.name}
+        </span>
+        <span className="text-xs font-semibold tabular-nums text-ink-secondary">
+          {item.dailyMovePct > 0 ? "+" : ""}
+          {item.dailyMovePct.toFixed(1)}%
+        </span>
+        <span className="rounded-full bg-sakura-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-brand-deep">
+          {item.displayScore} · {item.severity}
+        </span>
+      </div>
+      <p className="mt-2 text-xs text-ink-secondary">{item.primaryTrigger}</p>
+      {item.reasons[0] && (
+        <p className="mt-1 text-[11px] leading-relaxed text-ink-muted">{item.reasons[0]}</p>
+      )}
+    </li>
+  );
+}
+
+function DemoAnomalyRow({ item }: { item: MarketAnomaly }) {
+  const severity = item.score >= 90 ? "极端异常" : "高度异常";
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-xl border border-line p-3">
+      <span className="font-semibold text-ink">{item.symbol}</span>
+      <span className="min-w-0 break-words text-xs text-ink-secondary">
+        变动 {item.movePct.toFixed(1)}%
+      </span>
+      <span className="shrink-0 rounded-full bg-sakura-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-brand-deep">
+        {severity} {item.score}
+      </span>
+    </li>
   );
 }

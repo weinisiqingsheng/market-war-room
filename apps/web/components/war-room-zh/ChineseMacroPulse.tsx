@@ -6,6 +6,8 @@ import { Empty, Loading, Status } from "./ChineseMarketPulse";
 export function ChineseMacroPulse({
   signals,
   status,
+  mode,
+  meta,
 }: {
   signals: MacroSignal[] | null;
   status: ProvenanceStatus;
@@ -38,13 +40,29 @@ export function ChineseMacroPulse({
                 {signal.change === null ? "—" : formatMacroChange(signal)}
               </p>
               <p className="mt-2 break-words text-[11px] leading-relaxed text-ink-muted">
-                {signal.interpretation ?? "暂无解读"}
+                {toneLabel(signal.tone)} · {signal.interpretation ?? "暂无解读"}
               </p>
-              <p className="mt-2 text-[10px] text-ink-muted">{signal.source}</p>
+              {signal.stale && <p className="mt-2 text-[10px] font-semibold text-warn">陈旧</p>}
+              <p className="mt-2 text-[10px] text-ink-muted">
+                {signal.source} · {frequencyLabel(signal.frequency)}
+              </p>
             </li>
           ))}
         </ul>
       )}
+      {mode === "live" && meta && (
+        <p className="mt-3 text-[10px] leading-relaxed text-ink-muted">
+          多源数据按各自更新频率披露{meta.stale ? "；至少一项数据已陈旧。" : "。"}
+        </p>
+      )}
     </section>
   );
+}
+
+function frequencyLabel(frequency: MacroSignal["frequency"]): string {
+  return frequency === "daily" ? "日频" : frequency === "intraday" ? "盘中" : "实时";
+}
+
+function toneLabel(tone: MacroSignal["tone"]): string {
+  return { positive: "看涨", negative: "看跌", warning: "警示", neutral: "中性" }[tone];
 }

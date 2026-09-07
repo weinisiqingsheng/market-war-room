@@ -135,6 +135,7 @@ export function ChineseWarRoomDashboard({
               overview={anomaliesOverview}
             />
             <ChineseCatalystIntelligence
+              mode={catalystsMode}
               events={data.catalysts}
               status={catalystsStatus}
               overview={catalystsOverview}
