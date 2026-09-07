@@ -117,10 +117,12 @@ describe("Chinese Market War Room cards", () => {
         status="ready"
         mode="live"
         feed="iex"
+        stale={false}
       />,
     );
     expect(screen.getByRole("img", { name: "SPY 今日区间位置 50%" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "SPY 日内趋势，上行" })).toBeInTheDocument();
+    expect(screen.getByText("IEX 实时")).toBeInTheDocument();
 
     rerender(
       <ChineseMacroPulse
@@ -189,7 +191,7 @@ describe("Chinese Market War Room cards", () => {
       meta: {
         provider: "alpaca",
         feed: "delayed_sip",
-        delayMinutes: 15,
+        delayMinutes: 7,
         asOf: "2026-09-07T16:30:00.000Z",
         marketOpen: true,
       },
@@ -201,7 +203,7 @@ describe("Chinese Market War Room cards", () => {
     expect(screen.getByText("64%")).toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();
     expect(screen.getByText(/96% 覆盖率 · 高置信度/)).toBeInTheDocument();
-    expect(screen.getByText(/breadth-v1 · 500 个成分股 · 15分钟延迟 SIP/)).toBeInTheDocument();
+    expect(screen.getByText(/breadth-v1 · 500 个成分股 · 7分钟延迟 SIP/)).toBeInTheDocument();
   });
 
   it("preserves live anomaly movement and supplied severity", () => {
@@ -515,5 +517,33 @@ describe("Chinese Market War Room cards", () => {
 
     rerender(<ChineseCatalystIntelligence events={[]} status="ready" />);
     expect(screen.getByText("暂无催化事件")).toBeInTheDocument();
+  });
+
+  it("does not render retained catalyst metadata while loading or unavailable", () => {
+    const overview: CatalystOverview = {
+      meta: {
+        mode: "live",
+        engineVersion: "retained-engine",
+        anomalyVersion: "retained-anomaly",
+        candidateCount: 0,
+        matchedCount: 0,
+        unmatchedCount: 0,
+        generatedAt: null,
+        effectiveAsOf: "2026-09-07T16:30:00.000Z",
+        asOf: "2026-09-07T16:30:00.000Z",
+        catalystCutoff: "2026-09-07T16:00:00.000Z",
+        providers: { news: "error", sec: "ok", corporateActions: "ok" },
+      },
+      items: [],
+    };
+    const { rerender } = render(
+      <ChineseCatalystIntelligence mode="live" status="loading" events={[]} overview={overview} />,
+    );
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByText(/retained-engine|证据截至|数据源降级/)).not.toBeInTheDocument();
+
+    rerender(<ChineseCatalystIntelligence mode="live" status="error" events={[]} overview={overview} />);
+    expect(screen.getByRole("status")).toHaveTextContent("催化事件暂不可用");
+    expect(screen.queryByText(/retained-engine|证据截至|数据源降级/)).not.toBeInTheDocument();
   });
 });

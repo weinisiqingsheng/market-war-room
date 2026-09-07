@@ -11,7 +11,7 @@ interface ChineseMarketPulseProps {
   stale?: boolean;
 }
 
-export function ChineseMarketPulse({ indices, status, mode }: ChineseMarketPulseProps) {
+export function ChineseMarketPulse({ indices, status, mode, feed, stale = false }: ChineseMarketPulseProps) {
   return (
     <section id="market-pulse" aria-labelledby="market-pulse-heading">
       <header>
@@ -29,7 +29,7 @@ export function ChineseMarketPulse({ indices, status, mode }: ChineseMarketPulse
       ) : (
         <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {indices.map((index) => (
-            <ChineseIndexCard key={index.ticker} index={index} mode={mode} />
+            <ChineseIndexCard key={index.ticker} index={index} mode={mode} feed={feed} stale={stale} />
           ))}
         </ul>
       )}
@@ -37,7 +37,17 @@ export function ChineseMarketPulse({ indices, status, mode }: ChineseMarketPulse
   );
 }
 
-function ChineseIndexCard({ index, mode }: { index: MarketIndex; mode: MarketDataMode }) {
+function ChineseIndexCard({
+  index,
+  mode,
+  feed,
+  stale,
+}: {
+  index: MarketIndex;
+  mode: MarketDataMode;
+  feed: MarketFeed | null;
+  stale: boolean;
+}) {
   const dayPositionPct = (() => {
     if (index.price === null || index.high === null || index.low === null) return null;
     const dayRange = Math.max(0, index.high - index.low);
@@ -108,9 +118,22 @@ function ChineseIndexCard({ index, mode }: { index: MarketIndex; mode: MarketDat
       ) : (
         <p className="mt-auto pt-3 text-right text-[10px] text-ink-muted">日内图表即将推出</p>
       )}
-      {mode === "live" && <p className="mt-3 text-[10px] text-ink-muted">实时数据</p>}
+      {mode === "live" && (
+        <p className="mt-3 text-[10px] text-ink-muted">
+          {stale ? "陈旧数据" : feedLabel(feed)}
+        </p>
+      )}
     </li>
   );
+}
+
+function feedLabel(feed: MarketFeed | null): string {
+  const labels: Partial<Record<MarketFeed, string>> = {
+    iex: "IEX 实时",
+    sip: "SIP 实时",
+    delayed_sip: "延迟 SIP",
+  };
+  return (feed && labels[feed]) ?? "数据源不可用";
 }
 
 export function Loading({ label }: { label: string }) {

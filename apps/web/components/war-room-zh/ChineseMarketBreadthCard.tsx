@@ -94,7 +94,7 @@ function LiveBreadth({ overview }: { overview: BreadthOverview }) {
       </div>
       <p className="mt-3 text-xs text-ink-muted">
         {Math.round(metrics.coveragePct * 100)}% 覆盖率 · {confidenceLabel(overview.confidence)} ·{" "}
-        {overview.engineVersion} · {overview.universe.count} 个成分股 · 15分钟延迟 SIP
+        {overview.engineVersion} · {overview.universe.count} 个成分股 · {overview.meta.delayMinutes}分钟延迟 SIP
       </p>
     </>
   );

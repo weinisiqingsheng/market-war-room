@@ -16,7 +16,7 @@ export function ChineseCatalystIntelligence({
   overview?: CatalystOverview | null;
 }) {
   const live = mode === "live" ? (overview ?? null) : null;
-  const degraded = live && Object.values(live.meta.providers).some((provider) => provider !== "ok");
+  const degraded = status === "ready" && live && Object.values(live.meta.providers).some((provider) => provider !== "ok");
   return (
     <section
       id="catalyst-intelligence"
@@ -33,7 +33,7 @@ export function ChineseCatalystIntelligence({
         <p className="text-xs leading-relaxed text-ink-secondary">
           将已观察的证据映射为市场影响，而非新闻流。
         </p>
-        {live && (
+        {status === "ready" && live && (
           <p className="mt-2 text-[10px] text-ink-muted">
             {live.meta.engineVersion} · 实时 · 证据截至{" "}
             {formatEtTime(live.meta.effectiveAsOf ?? live.meta.catalystCutoff)}

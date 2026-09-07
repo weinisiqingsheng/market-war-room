@@ -49,3 +49,12 @@ The requested root-level test command passes the path through to the web workspa
 - `npm run typecheck` — passed for `@war-room/web` and `@war-room/types`.
 - `npm run lint` — passed with 0 errors; 2 pre-existing warnings remain in `apps/web/tests/ai-brief-schema.test.ts`.
 - `git diff --check -- apps/web/components/war-room-zh apps/web/features/war-room-zh/ChineseWarRoomDashboard.tsx apps/web/tests/chinese-war-room-components.test.tsx` — passed.
+
+## Re-review fix verification
+
+- Fixed `ChineseMarketPulse` to render supplied live feed and stale provenance (`IEX 实时`, `SIP 实时`, `延迟 SIP`, or `陈旧数据`) instead of generic live copy.
+- Fixed `ChineseCatalystIntelligence` to keep retained overview engine, cutoff, and provider metadata out of loading and error states; added regression coverage for both states.
+- Fixed `ChineseMarketBreadthCard` to render supplied `overview.meta.delayMinutes`; focused coverage uses a non-default 7-minute value.
+- `npm test -- --run tests/chinese-war-room-components.test.tsx tests/chinese-war-room-dashboard.test.tsx` — passed: 2 files, 12 tests.
+- `npm run typecheck` — passed for `@war-room/web` and `@war-room/types`.
+- `npm run lint` — passed with 0 errors; 2 pre-existing warnings remain in `apps/web/tests/ai-brief-schema.test.ts`.
