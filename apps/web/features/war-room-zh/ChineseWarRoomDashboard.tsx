@@ -1,7 +1,7 @@
 "use client";
 
 import type { MarketDataMode } from "@war-room/types";
-import { AskWarRoom } from "@/components/AskWarRoom";
+import { ChineseAskWarRoom } from "@/components/war-room-zh/ChineseAskWarRoom";
 import { ChineseCatalystIntelligence } from "@/components/war-room-zh/ChineseCatalystIntelligence";
 import { ChineseDataBanner } from "@/components/war-room-zh/ChineseDataBanner";
 import { ChineseFooter } from "@/components/war-room-zh/ChineseFooter";
@@ -12,7 +12,6 @@ import { ChineseMarketBreadthCard } from "@/components/war-room-zh/ChineseMarket
 import { ChineseMarketPulse } from "@/components/war-room-zh/ChineseMarketPulse";
 import { ChineseMarketRegimeCard } from "@/components/war-room-zh/ChineseMarketRegimeCard";
 import { ChineseSectorRotation } from "@/components/war-room-zh/ChineseSectorRotation";
-import { chineseCopy } from "@/components/war-room-zh/ChineseCopy";
 import { demoHeaderNav, demoMarketData, demoSession } from "@/data/demo-market";
 import { ChineseAiMarketBriefCard } from "@/components/war-room-zh/ChineseAiMarketBriefCard";
 import { useAnomaliesOverview } from "@/features/home/useAnomaliesOverview";
@@ -30,15 +29,6 @@ type DashboardProps = {
   anomaliesMode?: MarketDataMode;
   catalystsMode?: MarketDataMode;
 };
-
-function ChineseShellSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section aria-label={title}>
-      <h2 className="mb-4 text-lg font-semibold text-ink">{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 /** Chinese route shell. Localized cards are introduced in the following task. */
 export function ChineseWarRoomDashboard({
@@ -142,9 +132,7 @@ export function ChineseWarRoomDashboard({
             />
           </div>
           <ChineseAiMarketBriefCard />
-          <ChineseShellSection title={chineseCopy.askWarRoom}>
-            <AskWarRoom suggestions={data.suggestedQuestions} />
-          </ChineseShellSection>
+          <ChineseAskWarRoom suggestions={data.suggestedQuestions} />
         </div>
       </main>
       <ChineseFooter mode={mode} />
