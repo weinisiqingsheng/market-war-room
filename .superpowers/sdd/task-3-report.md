@@ -25,3 +25,10 @@ Implemented only the Chinese AI Market Brief boundary and UI. Existing English A
 
 - Live provider execution was not exercised because it requires the repository's external LLM configuration and credentials. The demo route and deterministic contract are covered.
 - The repository contained pre-existing dirty paths; none were staged or modified by this task.
+
+## Review Fix Verification — 2026-09-06
+
+- `cd apps/web && npm test -- --run tests/chinese-war-room-ai-brief.test.ts tests/chinese-war-room-components.test.tsx tests/chinese-war-room-dashboard.test.tsx`: PASS — 3 test files, 20 tests passed.
+- `npm run typecheck`: PASS — `@war-room/web` and `@war-room/types` completed with exit code 0.
+- `npm run lint`: PASS — 0 errors; 2 pre-existing warnings in `apps/web/tests/ai-brief-schema.test.ts`.
+- `git diff --check`: PASS.
