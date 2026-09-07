@@ -6,12 +6,168 @@ import { useChineseAskWarRoom } from "@/features/war-room-zh/useChineseAskWarRoo
 
 export function ChineseAskWarRoom({ suggestions }: { suggestions: SuggestedQuestion[] }) {
   const { status, data, errorKind, lastQuestion, submit, retry } = useChineseAskWarRoom();
-  const [value, setValue] = useState(""); const [asked, setAsked] = useState<string | null>(null);
-  const canSubmit = value.trim().length >= 2 && value.trim().length <= 500 && status !== "submitting";
-  function onSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!canSubmit) return; setAsked(value.trim()); submit(value.trim()); }
+  const [value, setValue] = useState("");
+  const [asked, setAsked] = useState<string | null>(null);
+  const canSubmit =
+    value.trim().length >= 2 && value.trim().length <= 500 && status !== "submitting";
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canSubmit) return;
+    setAsked(value.trim());
+    submit(value.trim());
+  }
   const answer = data?.answer;
-  return <section id="ask-war-room-zh" aria-labelledby="ask-war-room-zh-heading"><div className="rounded-3xl border border-line bg-gradient-to-br from-sakura-50 via-sakura-100 to-surface p-6 shadow-card lg:p-10"><div className="mx-auto max-w-2xl"><header className="text-center"><p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Sakura AI</p><h2 id="ask-war-room-zh-heading" className="mt-2 text-2xl font-semibold text-ink">询问市场作战室</h2><p className="mt-2 text-sm text-ink-secondary">基于当前作战室证据提问，回答不使用外部市场知识。</p><span className="mt-3 inline-flex rounded-full border border-line bg-white/80 px-2.5 py-1 text-[10px] font-bold text-ink-secondary">仅基于证据 · ask-sakura-v1</span></header>
-    <form onSubmit={onSubmit} className="mt-6" aria-label="询问市场作战室"><div className="flex flex-col gap-2 sm:flex-row sm:items-center"><label htmlFor="chinese-ask-war-room-input" className="sr-only">输入市场问题</label><textarea id="chinese-ask-war-room-input" value={value} maxLength={500} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="询问市场、个股、广度、环境或催化剂……" rows={2} className="min-w-0 flex-1 resize-y rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"/><button type="submit" disabled={!canSubmit} className="h-11 shrink-0 rounded-full bg-brand-deep px-5 text-sm font-semibold text-surface disabled:cursor-not-allowed disabled:opacity-50">{status === "submitting" ? "正在核对证据……" : "提交问题"}</button></div><div className="mt-1 flex justify-between text-[11px] text-ink-muted"><span>{value.length > 440 ? `${value.length}/500` : ""}</span><span>Enter 提交，Shift+Enter 换行</span></div></form>
-    <div aria-live="polite">{status === "submitting" && <p role="status" className="mt-4 text-center text-xs text-ink-secondary">正在核对当前证据……</p>}{status === "success" && answer && <article className="mt-5 rounded-2xl border border-line bg-white/80 p-4"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold text-ink">回答</h3><span className="rounded-full border border-line px-2.5 py-1 text-[10px] font-bold text-ink-secondary">{answer.status === "answered" ? "已基于证据" : answer.status === "insufficient_evidence" ? "证据有限" : "超出范围"}</span></div>{asked && <p className="mt-2 text-xs text-ink-muted">问题：<span className="text-ink-secondary">{asked}</span></p>}<p className="mt-3 text-sm leading-relaxed text-ink">{answer.answer.text}</p>{answer.supportingPoints.length > 0 && <div className="mt-4"><h4 className="text-[10px] font-bold tracking-[0.18em] text-accent">支持证据</h4><ul className="mt-1.5 space-y-1 text-xs text-ink-secondary">{answer.supportingPoints.map((point, index) => <li key={index}>· {point.text}</li>)}</ul></div>}{answer.limitations.length > 0 && <div className="mt-4"><h4 className="text-[10px] font-bold tracking-[0.18em] text-ink-muted">限制</h4><ul className="mt-1.5 space-y-1 text-xs text-ink-muted">{answer.limitations.map((point, index) => <li key={index}>· {point.text}</li>)}</ul></div>}<footer className="mt-4 flex items-center gap-3 border-t border-line pt-3 text-[11px] text-ink-muted">{data.selectedFactCount > 0 && <span>基于 {data.selectedFactCount} 条证据</span>}<Link href="/intelligence" className="ml-auto text-accent">查看证据</Link></footer></article>}{status === "api_insufficient" && <div className="mt-5 rounded-2xl border border-line bg-white/80 p-4"><h3 className="text-sm font-semibold text-ink">当前证据不足</h3><p className="mt-2 text-sm text-ink-secondary">当前没有足够可靠的市场证据支持回答。</p></div>}{status === "unavailable" && <div className="mt-5 rounded-2xl border border-line bg-white/80 p-4"><h3 className="text-sm font-semibold text-ink">服务暂时不可用</h3><p className="mt-1 text-xs text-ink-secondary">{errorKind === "invalid_request" ? "问题格式不符合要求。" : "证据回答服务暂时无法连接。"}</p><button type="button" onClick={retry} disabled={!lastQuestion} className="mt-3 rounded-full bg-sakura-300 px-3 py-1.5 text-xs font-semibold text-brand-deep disabled:opacity-50">重试</button></div>}</div>
-    <div className="mt-6"><p className="text-center text-[11px] font-semibold uppercase tracking-wider text-ink-muted">建议问题</p><ul className="mt-2 flex flex-wrap justify-center gap-2">{suggestions.map((question) => <li key={question.id}><button type="button" onClick={() => setValue(question.label)} className="rounded-full border border-line bg-white/80 px-3 py-1.5 text-xs text-ink-secondary">{question.label}</button></li>)}</ul></div></div></div></section>;
+  return (
+    <section id="ask-war-room-zh" aria-labelledby="ask-war-room-zh-heading">
+      <div className="rounded-3xl border border-line bg-gradient-to-br from-sakura-50 via-sakura-100 to-surface p-6 shadow-card lg:p-10">
+        <div className="mx-auto max-w-2xl">
+          <header className="text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Sakura AI</p>
+            <h2 id="ask-war-room-zh-heading" className="mt-2 text-2xl font-semibold text-ink">
+              询问市场作战室
+            </h2>
+            <p className="mt-2 text-sm text-ink-secondary">
+              基于当前作战室证据提问，回答不使用外部市场知识。
+            </p>
+            <span className="mt-3 inline-flex rounded-full border border-line bg-white/80 px-2.5 py-1 text-[10px] font-bold text-ink-secondary">
+              仅基于证据 · ask-sakura-v1
+            </span>
+          </header>
+          <form onSubmit={onSubmit} className="mt-6" aria-label="询问市场作战室">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <label htmlFor="chinese-ask-war-room-input" className="sr-only">
+                输入市场问题
+              </label>
+              <textarea
+                id="chinese-ask-war-room-input"
+                value={value}
+                maxLength={500}
+                autoComplete="off"
+                onChange={(event) => setValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                placeholder="询问市场、个股、广度、环境或催化剂……"
+                rows={2}
+                className="min-w-0 flex-1 resize-y rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2"
+              />
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="h-11 shrink-0 rounded-full bg-brand-deep px-5 text-sm font-semibold text-surface transition-colors hover:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {status === "submitting" ? "正在核对证据……" : "提交问题"}
+              </button>
+            </div>
+            <div className="mt-1 flex min-h-4 items-start justify-between gap-2 text-[11px] text-ink-muted">
+              <span aria-live="polite">{value.length > 440 ? `${value.length}/500` : ""}</span>
+              <span>Enter 提交，Shift+Enter 换行</span>
+            </div>
+          </form>
+          <div aria-live="polite">
+            {status === "submitting" && (
+              <p role="status" className="mt-4 text-center text-xs text-ink-secondary">
+                正在核对当前证据……
+              </p>
+            )}
+            {status === "success" && answer && (
+              <article className="mt-5 rounded-2xl border border-line bg-white/80 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold text-ink">回答</h3>
+                  <span className="rounded-full border border-line px-2.5 py-1 text-[10px] font-bold text-ink-secondary">
+                    {answer.status === "answered"
+                      ? "已基于证据"
+                      : answer.status === "insufficient_evidence"
+                        ? "证据有限"
+                        : "超出范围"}
+                  </span>
+                </div>
+                {asked && (
+                  <p className="mt-2 text-xs text-ink-muted">
+                    问题：<span className="text-ink-secondary">{asked}</span>
+                  </p>
+                )}
+                <p className="mt-3 text-sm leading-relaxed text-ink">{answer.answer.text}</p>
+                {answer.supportingPoints.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-[10px] font-bold tracking-[0.18em] text-accent">
+                      支持证据
+                    </h4>
+                    <ul className="mt-1.5 space-y-1 text-xs text-ink-secondary">
+                      {answer.supportingPoints.map((point, index) => (
+                        <li key={index}>· {point.text}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {answer.limitations.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-[10px] font-bold tracking-[0.18em] text-ink-muted">限制</h4>
+                    <ul className="mt-1.5 space-y-1 text-xs text-ink-muted">
+                      {answer.limitations.map((point, index) => (
+                        <li key={index}>· {point.text}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <footer className="mt-4 flex items-center gap-3 border-t border-line pt-3 text-[11px] text-ink-muted">
+                  {data.selectedFactCount > 0 && <span>基于 {data.selectedFactCount} 条证据</span>}
+                  <Link href="/intelligence" className="ml-auto text-accent">
+                    查看证据
+                  </Link>
+                </footer>
+              </article>
+            )}
+            {status === "api_insufficient" && (
+              <div className="mt-5 rounded-2xl border border-line bg-white/80 p-4">
+                <h3 className="text-sm font-semibold text-ink">当前证据不足</h3>
+                <p className="mt-2 text-sm text-ink-secondary">
+                  当前没有足够可靠的市场证据支持回答。
+                </p>
+              </div>
+            )}
+            {status === "unavailable" && (
+              <div className="mt-5 rounded-2xl border border-line bg-white/80 p-4">
+                <h3 className="text-sm font-semibold text-ink">服务暂时不可用</h3>
+                <p className="mt-1 text-xs text-ink-secondary">
+                  {errorKind === "invalid_request"
+                    ? "问题格式不符合要求。"
+                    : "证据回答服务暂时无法连接。"}
+                </p>
+                <button
+                  type="button"
+                  onClick={retry}
+                  disabled={!lastQuestion}
+                  className="mt-3 rounded-full bg-sakura-300 px-3 py-1.5 text-xs font-semibold text-brand-deep disabled:opacity-50"
+                >
+                  重试
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="mt-6">
+            <p className="text-center text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+              建议问题
+            </p>
+            <ul className="mt-2 flex flex-wrap justify-center gap-2">
+              {suggestions.map((question) => (
+                <li key={question.id}>
+                  <button
+                    type="button"
+                    onClick={() => setValue(question.label)}
+                    className="rounded-full border border-line bg-white/80 px-3 py-1.5 text-xs text-ink-secondary transition-colors hover:border-accent/50 hover:text-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2"
+                  >
+                    {question.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

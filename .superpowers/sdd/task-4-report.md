@@ -50,3 +50,19 @@ Existing English Ask files and unrelated pre-existing dirty paths were not modif
 
 - The production route follows the existing provider/config boundary and therefore requires the same live LLM configuration behavior as the existing Ask endpoint.
 - Browser verification and build belong to Task 5 and were not performed here.
+
+### Review-fix verification — 2026-09-06
+
+- `npm run test -w @war-room/web -- --run tests/chinese-war-room-ask.test.ts`: exit 0; 1 file passed, 14 tests passed.
+- `npm run test -w @war-room/web -- --run tests/chinese-war-room-ask.test.ts tests/chinese-war-room-dashboard.test.tsx tests/chinese-war-room-ai-brief.test.ts tests/chinese-war-room-components.test.tsx`: exit 0; 4 files passed, 34 tests passed.
+- `npm run typecheck -w @war-room/web`: exit 0; `tsc --noEmit` completed with no output.
+- `npm run lint -w @war-room/web`: exit 0; 0 errors and 2 pre-existing warnings in `apps/web/tests/ai-brief-schema.test.ts` for unused imports (`AI_BRIEF_VERSION`, `buildAiBriefSystemPrompt`).
+- `git diff --check`: exit 0; no output.
+
+### Final rerun after accessibility/readability polish — 2026-09-06
+
+- `npm run test -w @war-room/web -- --run tests/chinese-war-room-ask.test.ts`: exit 0; 1 file passed, 14 tests passed.
+- `npm run test -w @war-room/web -- --run tests/chinese-war-room-ask.test.ts tests/chinese-war-room-dashboard.test.tsx tests/chinese-war-room-ai-brief.test.ts tests/chinese-war-room-components.test.tsx`: exit 0; 4 files passed, 34 tests passed.
+- `npm run typecheck -w @war-room/web`: exit 0; `tsc --noEmit` completed with no output.
+- `npm run lint -w @war-room/web`: exit 0; 0 errors and 2 pre-existing warnings in `apps/web/tests/ai-brief-schema.test.ts` for unused imports (`AI_BRIEF_VERSION`, `buildAiBriefSystemPrompt`).
+- `git diff --check`: exit 0; no output.

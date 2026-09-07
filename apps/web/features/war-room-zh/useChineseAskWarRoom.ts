@@ -12,7 +12,7 @@ export function useChineseAskWarRoom(): ChineseAskResult {
   const [errorKind, setErrorKind] = useState<ChineseAskResult["errorKind"]>(null);
   const [lastQuestion, setLastQuestion] = useState<string | null>(null);
   const id = useRef(0); const controller = useRef<AbortController | null>(null); const disposed = useRef(false);
-  useEffect(() => () => { disposed.current = true; controller.current?.abort(); }, []);
+  useEffect(() => { disposed.current = false; return () => { disposed.current = true; controller.current?.abort(); }; }, []);
   const run = useCallback(async (raw: string) => {
     const question = raw.trim(); setLastQuestion(question);
     if (question.length < 2 || question.length > 500) { setErrorKind("invalid_request"); setStatus("unavailable"); return; }
@@ -29,11 +29,18 @@ export function useChineseAskWarRoom(): ChineseAskResult {
         inputConfidence?: { score: number; label: string } | null;
         selectedFactCount?: number;
       };
-      if (!response.ok) { setErrorKind("unavailable"); setStatus("unavailable"); return; }
+      if (!response.ok) {
+        const errorCode = typeof (json as { error?: { code?: unknown } }).error?.code === "string"
+          ? (json as { error: { code: string } }).error.code
+          : null;
+        setErrorKind(errorCode === "invalid_request" || errorCode === "too_short" || errorCode === "too_long" ? "invalid_request" : "unavailable");
+        setStatus("unavailable");
+        return;
+      }
       if (json.status === "insufficient_grounded_data") { setStatus("api_insufficient"); return; }
       if (json.status === "generated" && json.answer) { setData({ mode: json.mode ?? "demo", status: "generated", contextFingerprint: json.contextFingerprint, inputConfidence: json.inputConfidence, selectedFactCount: json.selectedFactCount ?? 0, answer: json.answer }); setStatus("success"); return; }
       setErrorKind("unavailable"); setStatus("unavailable");
     } catch { if (!disposed.current && id.current === current) { setErrorKind("unavailable"); setStatus("unavailable"); } }
   }, []);
-  return { status, data, errorKind, lastQuestion, submit: useCallback((q: string) => { void run(q); }, [run]), retry: useCallback(() => { if (lastQuestion) void run(lastQuestion); }, [lastQuestion, run]), clear: useCallback(() => { setData(null); setErrorKind(null); setLastQuestion(null); setStatus("idle"); }, []) };
+  return { status, data, errorKind, lastQuestion, submit: useCallback((q: string) => { void run(q); }, [run]), retry: useCallback(() => { if (lastQuestion) void run(lastQuestion); }, [lastQuestion, run]), clear: useCallback(() => { controller.current?.abort(); controller.current = null; id.current += 1; setData(null); setErrorKind(null); setLastQuestion(null); setStatus("idle"); }, []) };
 }
