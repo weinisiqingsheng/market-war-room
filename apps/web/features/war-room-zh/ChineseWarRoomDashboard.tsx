@@ -14,7 +14,7 @@ import { ChineseMarketRegimeCard } from "@/components/war-room-zh/ChineseMarketR
 import { ChineseSectorRotation } from "@/components/war-room-zh/ChineseSectorRotation";
 import { chineseCopy } from "@/components/war-room-zh/ChineseCopy";
 import { demoHeaderNav, demoMarketData, demoSession } from "@/data/demo-market";
-import { AiMarketBriefPanel } from "@/features/home/components/ai-market-brief-panel";
+import { ChineseAiMarketBriefCard } from "@/components/war-room-zh/ChineseAiMarketBriefCard";
 import { useAnomaliesOverview } from "@/features/home/useAnomaliesOverview";
 import { useBreadthOverview } from "@/features/home/useBreadthOverview";
 import { useCatalystsOverview } from "@/features/home/useCatalystsOverview";
@@ -141,9 +141,7 @@ export function ChineseWarRoomDashboard({
               overview={catalystsOverview}
             />
           </div>
-          <ChineseShellSection title={chineseCopy.aiBrief}>
-            <AiMarketBriefPanel />
-          </ChineseShellSection>
+          <ChineseAiMarketBriefCard />
           <ChineseShellSection title={chineseCopy.askWarRoom}>
             <AskWarRoom suggestions={data.suggestedQuestions} />
           </ChineseShellSection>
