@@ -1,6 +1,7 @@
 "use client";
 
 import type { MarketDataMode } from "@war-room/types";
+import type { CatalystEvent } from "@/types/market";
 import { ChineseAskWarRoom } from "@/components/war-room-zh/ChineseAskWarRoom";
 import { ChineseCatalystIntelligence } from "@/components/war-room-zh/ChineseCatalystIntelligence";
 import { ChineseDataBanner } from "@/components/war-room-zh/ChineseDataBanner";
@@ -29,6 +30,31 @@ type DashboardProps = {
   anomaliesMode?: MarketDataMode;
   catalystsMode?: MarketDataMode;
 };
+
+const CHINESE_SUGGESTION_LABELS: Record<string, string> = {
+  "fico-anomaly": "为什么 FICO 跌幅这么大？",
+  "breadth-weak": "市场广度是否偏弱？",
+  "regime-cautious": "为什么市场环境偏谨慎？",
+  "unusual-stocks": "今天最异常的股票有哪些？",
+};
+
+/** Localized presentation of the approved demo catalyst fixtures (same ids/scores). */
+const CHINESE_DEMO_CATALYSTS: CatalystEvent[] = [
+  {
+    id: "iran-energy",
+    category: "伊朗 / 能源",
+    headline: "美伊紧张局势升级",
+    chain: ["油价 +2.5%", "通胀风险上升", "10Y +8 bp", "增长估值承压"],
+    impactScore: 88,
+  },
+  {
+    id: "ma-ai-infra",
+    category: "并购 / AI 基建",
+    headline: "SLB → Kelvion 收购",
+    chain: ["41 亿美元交易", "数据中心敞口上升", "SLB 相对强势"],
+    impactScore: 81,
+  },
+];
 
 /** Chinese route shell. Localized cards are introduced in the following task. */
 export function ChineseWarRoomDashboard({
@@ -126,13 +152,18 @@ export function ChineseWarRoomDashboard({
             />
             <ChineseCatalystIntelligence
               mode={catalystsMode}
-              events={data.catalysts}
+              events={CHINESE_DEMO_CATALYSTS}
               status={catalystsStatus}
               overview={catalystsOverview}
             />
           </div>
           <ChineseAiMarketBriefCard />
-          <ChineseAskWarRoom suggestions={data.suggestedQuestions} />
+          <ChineseAskWarRoom
+            suggestions={data.suggestedQuestions.map((question) => ({
+              ...question,
+              label: CHINESE_SUGGESTION_LABELS[question.id] ?? question.label,
+            }))}
+          />
         </div>
       </main>
       <ChineseFooter mode={mode} />

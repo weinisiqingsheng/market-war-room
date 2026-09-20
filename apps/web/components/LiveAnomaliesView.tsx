@@ -7,10 +7,20 @@ const CONFIDENCE_LABEL: Record<string, string> = {
   insufficient: "Insufficient coverage",
 };
 
-/** Live S&P 500 delayed-SIP anomaly scanner view (never labeled LIVE). */
-export function LiveAnomaliesView({ overview }: { overview: AnomalyOverview }) {
+/** Live delayed-SIP anomaly scanner view (never labeled LIVE). */
+export function LiveAnomaliesView({
+  overview,
+  onSelectTicker,
+}: {
+  overview: AnomalyOverview;
+  /** Intelligence-only: focus the Evidence Explorer on this anomaly/catalyst facts. */
+  onSelectTicker?: (ticker: string) => void;
+}) {
   const coveragePct = Math.round(overview.coveragePct * 100);
   const stale = overview.meta.stale;
+  // Selected universe metadata from the anomaly API (V1.1E): the card must
+  // name whatever universe produced this ranking — never a hard-coded S&P 500.
+  const universeLabel = overview.universe?.label ?? overview.universe?.name ?? "Universe";
 
   return (
     <section id="market-anomalies" aria-labelledby="market-anomalies-heading">
@@ -24,7 +34,8 @@ export function LiveAnomaliesView({ overview }: { overview: AnomalyOverview }) {
               Market Anomalies
             </h2>
             <p className="mt-1 text-xs text-ink-secondary">
-              S&P 500 · {overview.engineVersion} · {overview.meta.feed.replace("_", " ")} 15m
+              {universeLabel} · {overview.engineVersion} ·{" "}
+              {overview.meta.feed.replace("_", " ")} 15m
             </p>
           </div>
           <span className="rounded-full border border-line bg-white/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
@@ -91,6 +102,16 @@ export function LiveAnomaliesView({ overview }: { overview: AnomalyOverview }) {
                   <p className="mt-1.5 text-[11px] leading-snug text-ink-muted">
                     {candidate.reasons[0]}
                   </p>
+                )}
+                {onSelectTicker && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectTicker(candidate.ticker)}
+                    className="mt-2 rounded-full border border-line bg-white/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-accent transition-colors hover:bg-sakura-100 hover:text-brand-deep"
+                    aria-label={`Trace grounded evidence for ${candidate.ticker}`}
+                  >
+                    Trace evidence
+                  </button>
                 )}
               </li>
             ))}

@@ -33,7 +33,7 @@ import {
 export const demoHeaderNav: HeaderNavItem[] = [
   { id: "overview", label: "Overview", href: "/" },
   { id: "markets", label: "Markets", href: "/markets" },
-  { id: "intelligence", label: "Intelligence", href: "/intelligence", disabled: true },
+  { id: "intelligence", label: "Intelligence", href: "/intelligence" },
 ];
 
 export const demoSession: MarketSession = {
@@ -383,9 +383,10 @@ export const demoBrief: MarketBrief = {
 };
 
 export const demoSuggestedQuestions: SuggestedQuestion[] = [
-  { id: "tech-weak", label: "Why is tech weak today?" },
-  { id: "risk-off", label: "What is driving the risk-off regime?" },
-  { id: "relative-strength", label: "Which sectors show relative strength?" },
+  { id: "fico-anomaly", label: "Why is FICO down so much?" },
+  { id: "breadth-weak", label: "Is market breadth weak?" },
+  { id: "regime-cautious", label: "Why is the regime cautious?" },
+  { id: "unusual-stocks", label: "What are the most unusual stocks today?" },
 ];
 
 export const demoMarketData: DemoMarketData = {

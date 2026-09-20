@@ -104,6 +104,17 @@ export function adaptRegimeOverview(regime: RegimeOverview): DomainAdapterOutput
 }
 
 /* Breadth */
+/**
+ * Breadth percentages at the adapter boundary.
+ *
+ * breadth-v1 stores every participation ratio in 0–1 (`advanceRatio`,
+ * `above20Pct`, `above50Pct`, `coveragePct`); the brief evidence contract
+ * expects percentages for the three display ratios. All three are converted
+ * here — once, at the boundary — so every downstream surface (Evidence
+ * Explorer, AI Brief input, Ask Sakura) shows the same number as the breadth
+ * UI. `coverage` intentionally stays a 0–1 ratio because confidence math uses
+ * it as a fraction.
+ */
 export function adaptBreadthOverview(breadth: BreadthOverview): DomainAdapterOutput<BreadthEvidenceInput> {
   if (breadth.score === null) {
     const sourceMeta = unavailableMeta(breadth.engineVersion);
@@ -115,7 +126,9 @@ export function adaptBreadthOverview(breadth: BreadthOverview): DomainAdapterOut
     asOf: breadth.meta.asOf, freshness: DELAYED, confidence: breadth.confidence, coverage: m.coveragePct,
     score: breadth.score, participation: breadth.state.label,
     advanceRatioPct: m.advanceRatio === null ? null : m.advanceRatio * 100,
-    pctAbove20: m.above20Pct, pctAbove50: m.above50Pct, newHighs20: m.newHighs20, newLows20: m.newLows20,
+    pctAbove20: m.above20Pct === null ? null : m.above20Pct * 100,
+    pctAbove50: m.above50Pct === null ? null : m.above50Pct * 100,
+    newHighs20: m.newHighs20, newLows20: m.newLows20,
   };
   return { evidenceInput, sourceMeta, quality: { meta: sourceMeta, coverage: m.coveragePct } };
 }

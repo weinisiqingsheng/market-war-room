@@ -5,6 +5,9 @@ import { SectorRotation } from "@/components/SectorRotation";
 import { MacroPulse } from "@/components/MacroPulse";
 import { MarketBreadthCard } from "@/components/MarketBreadthCard";
 import { MarketAnomaliesCard } from "@/components/MarketAnomaliesCard";
+import { AnomalyUniverseSelector } from "@/components/AnomalyUniverseSelector";
+import { DEFAULT_ANOMALY_UNIVERSE_ID } from "@/lib/anomalies/universe/registry";
+import type { AnomalyUniverseId } from "@/lib/anomalies/universe/types";
 import type { MarketOverviewState } from "@/features/home/useMarketOverview";
 import type { MacroOverviewState } from "@/features/home/useMacroOverview";
 import type { BreadthOverviewState } from "@/features/home/useBreadthOverview";
@@ -15,17 +18,28 @@ import type { AnomaliesOverviewState } from "@/features/home/useAnomaliesOvervie
  *
  * Overview asks "what is the market doing today?"; Markets answers "what are
  * the actual numbers?" — indexes, sector rotation, macro conditions, breadth
- * and S&P 500 anomalies. Deterministic data only: no AI brief, no Ask War Room.
- * State is owned once by MarketsDashboard, so no endpoint is fetched twice.
+ * and anomaly scan over a selectable universe (V1.1E). Deterministic data only:
+ * no AI brief, no Ask War Room. State is owned once by MarketsDashboard, so no
+ * endpoint is fetched twice.
  */
 export interface MarketsWorkspaceProps {
   market: MarketOverviewState;
   macro: MacroOverviewState;
   breadth: BreadthOverviewState;
   anomalies: AnomaliesOverviewState;
+  /** Markets-only local universe selection; defaults to S&P 500. */
+  anomaliesUniverse?: AnomalyUniverseId;
+  onAnomaliesUniverseChange?: (universeId: AnomalyUniverseId) => void;
 }
 
-export function MarketsWorkspace({ market, macro, breadth, anomalies }: MarketsWorkspaceProps) {
+export function MarketsWorkspace({
+  market,
+  macro,
+  breadth,
+  anomalies,
+  anomaliesUniverse = DEFAULT_ANOMALY_UNIVERSE_ID,
+  onAnomaliesUniverseChange,
+}: MarketsWorkspaceProps) {
   const spy = market.indices?.find((index) => index.ticker === "SPY") ?? null;
   const benchmark = {
     ticker: "SPY",
@@ -118,23 +132,35 @@ export function MarketsWorkspace({ market, macro, breadth, anomalies }: MarketsW
         overview={breadth.overview}
       />
 
-      {/* 5 · S&P 500 anomalies — anomaly-v1 output as-is, dynamically scanned. */}
-      {anomalies.mode === "live" && anomalies.overview ? (
-        <p
-          role="note"
-          className="rounded-xl border border-line bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-secondary"
-        >
-          Scanning the S&amp;P 500 universe dynamically for statistically unusual daily moves — this
-          is not a fixed watchlist. Universe: {anomalies.overview.universe.name} ·{" "}
-          {anomalies.overview.universeCount} securities in the current snapshot · anomaly-v1.
-        </p>
-      ) : null}
-      <MarketAnomaliesCard
-        mode={anomalies.mode}
-        status={anomalies.status}
-        anomalies={anomalies.demo}
-        overview={anomalies.overview}
-      />
+      {/* 5 · Anomaly scanner — anomaly-v1 output as-is; universe selection is
+          Markets-only local state and never touches Overview/Intelligence. */}
+      <div className="space-y-3">
+        <AnomalyUniverseSelector
+          value={anomaliesUniverse}
+          onChange={(universeId) => onAnomaliesUniverseChange?.(universeId)}
+          busy={anomalies.status === "loading"}
+        />
+        {anomalies.overview ? (
+          <p
+            role="note"
+            className="rounded-xl border border-line bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-secondary"
+          >
+            {anomalies.mode === "demo" ? "Demo universe preview (not live market data). " : ""}
+            Scanning the {anomalies.overview.universe.label ??
+              anomalies.overview.universe.name}{" "}
+            universe dynamically for statistically unusual daily moves — this is not a fixed
+            watchlist. Universe: {anomalies.overview.universe.name} ·{" "}
+            {anomalies.overview.universeCount} securities in the current snapshot ·{" "}
+            {anomalies.overview.engineVersion}.
+          </p>
+        ) : null}
+        <MarketAnomaliesCard
+          mode={anomalies.mode}
+          status={anomalies.status}
+          anomalies={anomalies.demo}
+          overview={anomalies.overview}
+        />
+      </div>
     </div>
   );
 }

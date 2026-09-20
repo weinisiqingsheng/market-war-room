@@ -6,6 +6,9 @@ import { Empty, Loading, Status } from "./ChineseMarketPulse";
 export function ChineseSectorRotation({
   sectors,
   status,
+  mode,
+  feed,
+  stale = false,
   benchmark,
 }: {
   sectors: SectorPerformance[] | null;
@@ -22,10 +25,19 @@ export function ChineseSectorRotation({
       className="rounded-[20px] border border-line bg-surface p-5 shadow-card"
     >
       <header>
-        <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted">相对强弱</p>
-        <h2 id="sector-rotation-heading" className="text-lg font-semibold text-ink">
-          板块轮动
-        </h2>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-ink-muted">相对强弱</p>
+            <h2 id="sector-rotation-heading" className="text-lg font-semibold text-ink">
+              板块轮动
+            </h2>
+          </div>
+          {mode === "live" && feed ? (
+            <span className="rounded-full border border-line bg-white/70 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-ink-secondary">
+              {stale ? "陈旧" : `实时 · ${feed.toUpperCase()}`}
+            </span>
+          ) : null}
+        </div>
         <p className="text-xs leading-relaxed text-ink-secondary">相对 {benchmark.ticker} 排名</p>
       </header>
       <div className="mt-4 hidden gap-3 px-3 text-[10px] font-semibold text-ink-muted md:grid md:grid-cols-[1.6fr_0.7fr_0.7fr_0.9fr_1.1fr]">

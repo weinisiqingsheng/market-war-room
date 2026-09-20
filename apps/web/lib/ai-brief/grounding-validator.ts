@@ -27,8 +27,12 @@ function strengthOf(fact: EvidenceFact | undefined): string | null {
 }
 function numberTokens(text: string): Set<string> {
   const tokens = new Set<string>();
+  // Collapse thousands separators inside numeric literals so "1,250" and
+  // "1250" are the SAME number for validation (applied symmetrically to the
+  // claim and the evidence surface, so no new numbers become permissible).
+  const normalized = text.replace(/(\d),(?=\d{3}\b)/g, "$1");
   const pattern = /(-?\d+(?:\.\d+)?)\s*(%|bps|\/100|\$|×|x|d|m|b|billion|million)?/gi;
-  for (const match of text.matchAll(pattern)) {
+  for (const match of normalized.matchAll(pattern)) {
     const value = Number.parseFloat(match[1] ?? "");
     if (Number.isNaN(value)) continue;
     const unit = (match[2] ?? "").toLowerCase().replace(/×/g, "x");

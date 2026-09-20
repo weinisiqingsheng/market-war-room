@@ -138,7 +138,7 @@ export function Header({ nav, session, mode, meta }: HeaderProps) {
           </span>
         </div>
 
-        {/* Navigation — Markets is live in V1.1A; Intelligence stays disabled */}
+        {/* Navigation — Markets + Intelligence are live as of V1.1B */}
         <nav aria-label="Primary" className="hidden md:block">
           <ul className="flex items-center gap-1 rounded-full border border-line bg-white/60 p-1 shadow-soft">
             {nav.map((item) => (

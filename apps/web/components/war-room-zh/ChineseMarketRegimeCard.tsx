@@ -62,13 +62,36 @@ export function ChineseMarketRegimeCard({
       <h2 id="market-regime-heading" className="sr-only">
         市场环境
       </h2>
-      <p className="mt-3 text-6xl font-semibold tabular-nums text-ink">
-        {score ?? "—"}
-        <span className="ml-2 text-sm text-ink-muted">/ 100</span>
-      </p>
+      {score !== null && score !== undefined ? (
+        <p
+          role="meter"
+          aria-label={`市场环境评分 ${score} / 100`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={score}
+          className="mt-3 text-6xl font-semibold tabular-nums text-ink"
+        >
+          {score}
+          <span className="ml-2 text-sm text-ink-muted">/ 100</span>
+        </p>
+      ) : (
+        <p className="mt-3 text-6xl font-semibold tabular-nums text-ink">
+          —<span className="ml-2 text-sm text-ink-muted">/ 100</span>
+        </p>
+      )}
       <p className="mt-3 inline-flex rounded-full bg-sakura-200 px-3 py-1 text-xs font-semibold text-brand-deep">
         {label}
       </p>
+      {mode === "demo" && regime?.insight ? (
+        <div className="mt-3 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-1 pr-3">
+          <span className="rounded-full bg-sakura-300 px-2.5 py-1 text-[11px] font-semibold text-brand-deep">
+            {insightTitle(regime.insight.title)}
+          </span>
+          <span className="text-xs font-medium text-ink-secondary">
+            {insightText(regime.insight.text)}
+          </span>
+        </div>
+      ) : null}
       <p className="mt-4 max-w-xl break-words text-sm leading-relaxed text-ink-secondary">
         {mode === "demo"
           ? regime?.explanation
@@ -83,6 +106,15 @@ export function ChineseMarketRegimeCard({
           {result.missingInputs.length > 0 && <span>{result.missingInputs.length} 个缺失输入</span>}
         </div>
       )}
+      {mode === "demo" && regime ? (
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-muted">
+          <span>{spectrumLabel(regime.spectrum.riskOff)}</span>
+          <span>·</span>
+          <span>{spectrumLabel(regime.spectrum.neutral)}</span>
+          <span>·</span>
+          <span>{spectrumLabel(regime.spectrum.riskOn)}</span>
+        </div>
+      ) : null}
       <h3 className="mt-6 text-sm font-semibold text-ink">环境驱动因素</h3>
       <ul className="mt-3 grid gap-3 sm:grid-cols-2">
         {drivers.map((driver) => (
@@ -110,4 +142,30 @@ function confidenceLabel(confidence: RegimeResult["confidence"]): string {
   return { high: "高置信度", medium: "中等置信度", low: "低置信度", insufficient: "覆盖不足" }[
     confidence
   ];
+}
+
+const INSIGHT_TITLES: Record<string, string> = {
+  "Today at a glance": "今日概览",
+};
+
+const INSIGHT_TEXTS: Record<string, string> = {
+  "Oil ↑ · Yields ↑ · Energy leading": "油价上行 · 收益率上行 · 能源领涨",
+};
+
+const SPECTRUM_LABELS: Record<string, string> = {
+  "Risk-Off": "风险规避",
+  Neutral: "中性",
+  "Risk-On": "风险偏好",
+};
+
+function insightTitle(title: string): string {
+  return INSIGHT_TITLES[title] ?? title;
+}
+
+function insightText(text: string): string {
+  return INSIGHT_TEXTS[text] ?? text;
+}
+
+function spectrumLabel(label: string): string {
+  return SPECTRUM_LABELS[label] ?? label;
 }

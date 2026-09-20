@@ -4,6 +4,8 @@
  * Deterministic anomaly-v1 — detects unusual statistical behavior, never a
  * prediction, recommendation, or catalyst explanation.
  */
+import type { AnomalyUniverseId } from "./universe/types";
+
 export const ANOMALY_ENGINE_VERSION = "anomaly-v1";
 
 export type AnomalyDirection = "up" | "down" | "flat";
@@ -81,7 +83,11 @@ export interface AnomalyMeta {
 }
 
 export interface AnomalyUniverseInfo {
-  name: "S&P 500";
+  /** V1.1E: always emitted by the live/demo builders; optional for legacy fixtures. */
+  id?: AnomalyUniverseId;
+  /** Selector label ("S&P 500" / "Nasdaq 100"); `name` is kept as an alias. */
+  label?: string;
+  name: string;
   version: string;
   asOf: string;
   count: number;

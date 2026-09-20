@@ -1,13 +1,30 @@
 /**
  * Deterministic demo AnomalyOverview fixture (ANOMALIES_MODE=demo).
  * Clearly labeled demo in the UI; never labeled LIVE.
+ *
+ * V1.1E: `buildDemoAnomaliesOverview(universeId)` re-labels the same
+ * deterministic demo candidates for the selected anomaly universe (membership
+ * filter + derived counts). It never fabricates live data and never replaces a
+ * failed live response — demo output only exists when ANOMALIES_MODE=demo.
  */
+import {
+  DEFAULT_ANOMALY_UNIVERSE_ID,
+  anomalyUniverseOrDefault,
+  type AnomalyUniverseId,
+} from "./universe/registry";
 import type { AnomalyOverview } from "./types";
 
 export const demoAnomaliesOverview: AnomalyOverview = {
   mode: "demo",
   engineVersion: "anomaly-v1",
-  universe: { name: "S&P 500", version: "sp500-v1", asOf: "2026-09-05", count: 503 },
+  universe: {
+    id: "sp500",
+    label: "S&P 500",
+    name: "S&P 500",
+    version: "sp500-v1",
+    asOf: "2026-09-05",
+    count: 503,
+  },
   meta: {
     provider: "alpaca",
     feed: "delayed_sip",
@@ -65,3 +82,58 @@ export const demoAnomaliesOverview: AnomalyOverview = {
   topNegative: [],
   asOf: null,
 };
+
+/**
+ * Deterministic demo overview for the selected universe.
+ *
+ * - Universe metadata (id/label/version/asOf/count) comes from the versioned
+ *   universe definition.
+ * - Demo candidates are filtered to universe membership (falling back to the
+ *   canonical demo rows when none overlap, e.g. a small future universe).
+ * - Counts keep the fixture's coverage ratio scaled to the universe size —
+ *   deterministic arithmetic on demo data, never read from the provider.
+ */
+export function buildDemoAnomaliesOverview(
+  universeId: AnomalyUniverseId = DEFAULT_ANOMALY_UNIVERSE_ID,
+): AnomalyOverview {
+  const universe = anomalyUniverseOrDefault(universeId);
+  if (universeId === DEFAULT_ANOMALY_UNIVERSE_ID) {
+    return {
+      ...demoAnomaliesOverview,
+      universe: {
+        ...demoAnomaliesOverview.universe,
+        id: universe.id,
+        label: universe.label,
+        name: universe.label,
+        version: universe.version,
+        asOf: universe.asOf,
+        count: universe.count,
+      },
+    };
+  }
+  const symbols = new Set(universe.symbols);
+  const filtered = demoAnomaliesOverview.topOverall.filter((candidate) =>
+    symbols.has(candidate.ticker),
+  );
+  const ratio =
+    demoAnomaliesOverview.universeCount > 0
+      ? demoAnomaliesOverview.eligibleCount / demoAnomaliesOverview.universeCount
+      : 0;
+  const eligible = Math.min(universe.count, Math.round(universe.count * ratio));
+  return {
+    ...demoAnomaliesOverview,
+    universe: {
+      id: universe.id,
+      label: universe.label,
+      name: universe.label,
+      version: universe.version,
+      asOf: universe.asOf,
+      count: universe.count,
+    },
+    universeCount: universe.count,
+    eligibleCount: eligible,
+    scoredCount: eligible,
+    coveragePct: universe.count > 0 ? eligible / universe.count : 0,
+    topOverall: filtered.length > 0 ? filtered : demoAnomaliesOverview.topOverall,
+  };
+}

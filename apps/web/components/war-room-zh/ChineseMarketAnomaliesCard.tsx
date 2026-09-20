@@ -1,5 +1,6 @@
 import type { MarketAnomaly, MarketDataMode } from "@/types/market";
 import type { AnomalyCandidate, AnomalyOverview } from "@/lib/anomalies/types";
+import { formatSignedPct } from "@/lib/format";
 import { Empty, Loading, Status } from "./ChineseMarketPulse";
 
 export function ChineseMarketAnomaliesCard({
@@ -50,15 +51,15 @@ export function ChineseMarketAnomaliesCard({
       <h2 id="market-anomalies-heading" className="text-lg font-semibold text-ink">
         市场异常
       </h2>
-      <ul className="mt-4 space-y-2">
-        {mode === "live"
-          ? (items as AnomalyCandidate[]).map((item) => (
-              <LiveAnomalyRow key={item.ticker} item={item} />
-            ))
-          : (items as MarketAnomaly[]).map((item) => (
-              <DemoAnomalyRow key={item.symbol} item={item} />
-            ))}
-      </ul>
+      {mode === "live" ? (
+        <ul className="mt-4 space-y-2">
+          {(items as AnomalyCandidate[]).map((item) => (
+            <LiveAnomalyRow key={item.ticker} item={item} />
+          ))}
+        </ul>
+      ) : (
+        <DemoAnomalyTable items={items as MarketAnomaly[]} />
+      )}
       {mode === "live" && overview && (
         <p className="mt-3 text-[10px] text-ink-muted">
           {Math.round(overview.coveragePct * 100)}% 覆盖率 · {overview.confidence} ·{" "}
@@ -92,17 +93,73 @@ function LiveAnomalyRow({ item }: { item: AnomalyCandidate }) {
   );
 }
 
-function DemoAnomalyRow({ item }: { item: MarketAnomaly }) {
-  const severity = item.score >= 90 ? "极端异常" : "高度异常";
+function DemoAnomalyTable({ items }: { items: MarketAnomaly[] }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-xl border border-line p-3">
-      <span className="font-semibold text-ink">{item.symbol}</span>
-      <span className="min-w-0 break-words text-xs text-ink-secondary">
-        变动 {item.movePct.toFixed(1)}%
-      </span>
-      <span className="shrink-0 rounded-full bg-sakura-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-brand-deep">
-        {severity} {item.score}
-      </span>
-    </li>
+    <div className="mt-4 overflow-x-auto">
+      <table className="w-full min-w-[520px] text-sm">
+        <caption className="sr-only">演示市场异动数据</caption>
+        <thead>
+          <tr className="border-b border-line text-left text-[10px] uppercase tracking-wider text-ink-muted">
+            <th scope="col" className="py-2 pr-3 font-semibold">
+              标的
+            </th>
+            <th scope="col" className="px-2 py-2 font-semibold">
+              变动
+            </th>
+            <th scope="col" className="px-2 py-2 font-semibold">
+              相对成交量
+            </th>
+            <th scope="col" className="px-2 py-2 font-semibold">
+              距日高
+            </th>
+            <th scope="col" className="px-2 py-2 font-semibold">
+              相对强度
+            </th>
+            <th scope="col" className="px-2 py-2 text-right font-semibold">
+              评分
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => {
+            const severity = item.score >= 90 ? "极端异常" : "高度异常";
+            return (
+              <tr key={item.symbol} className="border-b border-line/60 last:border-0">
+                <td className="py-2.5 pr-3 font-semibold text-ink">{item.symbol}</td>
+                <td className="px-2 py-2.5 tabular-nums text-ink-secondary">
+                  {formatSignedPct(item.movePct)}
+                </td>
+                <td className="px-2 py-2.5 tabular-nums text-ink-secondary">
+                  {item.relativeVolume.toFixed(1)}×
+                </td>
+                <td className="px-2 py-2.5 tabular-nums text-ink-secondary">
+                  {item.hodDistancePct.toFixed(1)}%
+                </td>
+                <td className="px-2 py-2.5 text-ink-secondary">
+                  {"+".repeat(item.relativeStrength)}
+                </td>
+                <td className="px-2 py-2.5 text-right">
+                  <span className="inline-flex items-center gap-2">
+                    <span
+                      role="meter"
+                      aria-label={`${item.symbol} 异常评分`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={item.score}
+                      className="font-semibold tabular-nums text-ink"
+                    >
+                      {item.score}
+                    </span>
+                    <span className="rounded-full bg-sakura-100 px-2 py-0.5 text-[10px] font-semibold text-brand-deep">
+                      {severity}
+                    </span>
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

@@ -50,9 +50,22 @@ export function ChineseMarketBreadthCard({
         市场广度
       </h2>
       {live ? <LiveBreadth overview={live} /> : <DemoBreadth breadth={breadth!} />}
-      <p className="mt-4 text-2xl font-semibold tabular-nums text-ink">
-        {score ?? "—"} <span className="text-sm text-ink-muted">/ 100</span>
-      </p>
+      {typeof score === "number" ? (
+        <p
+          role="meter"
+          aria-label="市场广度评分"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={score}
+          className="mt-4 text-2xl font-semibold tabular-nums text-ink"
+        >
+          {score} <span className="text-sm text-ink-muted">/ 100</span>
+        </p>
+      ) : (
+        <p className="mt-4 text-2xl font-semibold tabular-nums text-ink">
+          — <span className="text-sm text-ink-muted">/ 100</span>
+        </p>
+      )}
     </section>
   );
 }
@@ -94,21 +107,52 @@ function LiveBreadth({ overview }: { overview: BreadthOverview }) {
       </div>
       <p className="mt-3 text-xs text-ink-muted">
         {Math.round(metrics.coveragePct * 100)}% 覆盖率 · {confidenceLabel(overview.confidence)} ·{" "}
-        {overview.engineVersion} · {overview.universe.count} 个成分股 · {overview.meta.delayMinutes}分钟延迟 SIP
+        {overview.engineVersion} · {overview.universe.count} 个成分股 · {overview.meta.delayMinutes}
+        分钟延迟 SIP
       </p>
     </>
   );
 }
 
 function DemoBreadth({ breadth }: { breadth: MarketBreadth }) {
+  const moverTotal = breadth.stocksUpOver2Pct + breadth.stocksDownOver2Pct;
   return (
-    <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-ink-secondary">
-      <p>
-        上涨 <strong className="ml-1 text-ink">{breadth.advancingPct}%</strong>
-      </p>
-      <p>
-        下跌 <strong className="ml-1 text-ink">{breadth.decliningPct}%</strong>
-      </p>
+    <div className="mt-4 space-y-3 text-sm text-ink-secondary">
+      <div className="flex flex-wrap justify-between gap-2">
+        <span>
+          上涨 <strong className="ml-1 text-ink">{breadth.advancingPct}%</strong>
+        </span>
+        <span>
+          下跌 <strong className="ml-1 text-ink">{breadth.decliningPct}%</strong>
+        </span>
+      </div>
+      <div
+        role="img"
+        aria-label="上涨与下跌占比"
+        className="flex h-1.5 w-full overflow-hidden rounded-full bg-line"
+      >
+        <span className="bg-pos" style={{ width: `${breadth.advancingPct}%` }} />
+        <span className="bg-neg" style={{ width: `${breadth.decliningPct}%` }} />
+      </div>
+      <p>下跌占比高于上涨占比。</p>
+
+      <div className="flex flex-wrap justify-between gap-2">
+        <span>
+          涨幅超过 +2% <strong className="ml-1 text-ink">{breadth.stocksUpOver2Pct}</strong>
+        </span>
+        <span>
+          跌幅超过 -2% <strong className="ml-1 text-ink">{breadth.stocksDownOver2Pct}</strong>
+        </span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-line" aria-hidden="true">
+        <div
+          className="h-full rounded-full bg-neg"
+          style={{
+            width: `${moverTotal > 0 ? (breadth.stocksDownOver2Pct / moverTotal) * 100 : 0}%`,
+          }}
+        />
+      </div>
+
       <p>
         高于 50 日均线 <strong className="ml-1 text-ink">{breadth.above50DmaPct}%</strong>
       </p>

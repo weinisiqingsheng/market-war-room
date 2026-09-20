@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { RegimeResult } from "@war-room/types";
+import type { MarketDataMeta, RegimeResult } from "@war-room/types";
 import type { AnomalyOverview } from "@/lib/anomalies/types";
 import type { BreadthOverview } from "@/lib/breadth/types";
 import type { CatalystOverview } from "@/lib/catalysts/types";
@@ -16,6 +16,7 @@ import {
   demoSectors,
 } from "@/data/demo-market";
 import { ChineseCatalystIntelligence } from "@/components/war-room-zh/ChineseCatalystIntelligence";
+import { ChineseHeader } from "@/components/war-room-zh/ChineseHeader";
 import { ChineseMacroPulse } from "@/components/war-room-zh/ChineseMacroPulse";
 import { ChineseMarketAnomaliesCard } from "@/components/war-room-zh/ChineseMarketAnomaliesCard";
 import { ChineseMarketBreadthCard } from "@/components/war-room-zh/ChineseMarketBreadthCard";
@@ -24,6 +25,43 @@ import { ChineseMarketRegimeCard } from "@/components/war-room-zh/ChineseMarketR
 import { ChineseSectorRotation } from "@/components/war-room-zh/ChineseSectorRotation";
 
 describe("Chinese Market War Room cards", () => {
+  it("discloses supplied header freshness and provenance without inventing a feed", () => {
+    const meta: MarketDataMeta = {
+      mode: "live",
+      provider: "alpaca",
+      feed: "iex",
+      asOf: "2026-09-07T16:30:00.000Z",
+      marketOpen: true,
+      nextOpen: null,
+      nextClose: "2026-09-07T20:00:00.000Z",
+      stale: true,
+    };
+    const { rerender } = render(
+      <ChineseHeader
+        nav={[{ id: "overview", label: "Overview", href: "/" }]}
+        session={{ label: "US Markets", status: "Demo", note: "Demo session" }}
+        mode="live"
+        meta={meta}
+      />,
+    );
+
+    expect(screen.getByText(`数据截至 ${formatEtTime(meta.asOf)}`)).toBeInTheDocument();
+    expect(screen.getByText("实时 · IEX")).toBeInTheDocument();
+    expect(screen.getByText("陈旧")).toBeInTheDocument();
+    expect(screen.queryByText(/US Markets/)).not.toBeInTheDocument();
+
+    rerender(
+      <ChineseHeader
+        nav={[{ id: "overview", label: "概览", href: "/" }]}
+        session={{ label: "US Markets", status: "Demo", note: "Demo session" }}
+        mode="live"
+        meta={null}
+      />,
+    );
+    expect(screen.getByText("数据来源与时间不可用")).toBeInTheDocument();
+    expect(screen.queryByText(/IEX/)).not.toBeInTheDocument();
+  });
+
   it("preserves live regime explainability and safely renders missing sector returns", () => {
     const result: RegimeResult = {
       score: 42,
@@ -165,6 +203,7 @@ describe("Chinese Market War Room cards", () => {
     expect(screen.getByText("+1.25%")).toBeInTheDocument();
     expect(screen.getByText("Leader")).toBeInTheDocument();
     expect(screen.getByText("72")).toBeInTheDocument();
+    expect(screen.getByText("实时 · IEX")).toBeInTheDocument();
 
     const breadth: BreadthOverview = {
       mode: "live",
@@ -363,6 +402,14 @@ describe("Chinese Market War Room cards", () => {
       />,
     );
     expect(screen.getByText(String(demoRegime.score))).toBeInTheDocument();
+    expect(screen.getByText("今日概览")).toBeInTheDocument();
+    expect(screen.getByText("油价上行 · 收益率上行 · 能源领涨")).toBeInTheDocument();
+    expect(screen.getByRole("meter", { name: "市场环境评分 42 / 100" })).toHaveAttribute(
+      "aria-valuenow",
+      "42",
+    );
+    expect(screen.getByText("风险规避")).toBeInTheDocument();
+    expect(screen.getByText("风险偏好")).toBeInTheDocument();
 
     rerender(
       <ChineseMarketRegimeCard
@@ -396,6 +443,55 @@ describe("Chinese Market War Room cards", () => {
       />,
     );
     expect(screen.getByText("暂无市场环境数据")).toBeInTheDocument();
+  });
+
+  it("restores demo anomaly metrics, table semantics, and score visualization", () => {
+    render(
+      <ChineseMarketAnomaliesCard
+        mode="demo"
+        status="ready"
+        anomalies={demoAnomalies}
+        overview={null}
+      />,
+    );
+
+    expect(screen.getByRole("columnheader", { name: "相对成交量" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "距日高" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "相对强度" })).toBeInTheDocument();
+    expect(screen.getByText("9.5×")).toBeInTheDocument();
+    expect(screen.getByRole("meter", { name: "NEOV 异常评分" })).toHaveAttribute(
+      "aria-valuenow",
+      "92",
+    );
+  });
+
+  it("restores breadth subpanels, bars, score, and explanation", () => {
+    render(
+      <ChineseMarketBreadthCard mode="demo" status="ready" breadth={demoBreadth} overview={null} />,
+    );
+
+    expect(screen.getByText("涨幅超过 +2%")).toBeInTheDocument();
+    expect(screen.getByText("跌幅超过 -2%")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "上涨与下跌占比" })).toBeInTheDocument();
+    expect(screen.getByRole("meter", { name: "市场广度评分" })).toHaveAttribute(
+      "aria-valuenow",
+      String(demoBreadth.score),
+    );
+    expect(screen.getByText(/下跌占比高于上涨占比/)).toBeInTheDocument();
+  });
+
+  it("uses directional text and the supplied pastel surface in Market Pulse", () => {
+    render(
+      <ChineseMarketPulse
+        indices={[{ ...demoIndices[0], changePct: -0.24, surface: "sakura" }]}
+        status="ready"
+        mode="demo"
+        feed={null}
+      />,
+    );
+
+    expect(screen.getByRole("article", { name: "SPY 指数快照" })).toHaveClass("bg-sakura-300");
+    expect(screen.getByText("-0.2%")).toHaveClass("text-neg");
   });
 
   it("distinguishes ready, loading, error, and empty macro states", () => {
@@ -542,7 +638,9 @@ describe("Chinese Market War Room cards", () => {
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
     expect(screen.queryByText(/retained-engine|证据截至|数据源降级/)).not.toBeInTheDocument();
 
-    rerender(<ChineseCatalystIntelligence mode="live" status="error" events={[]} overview={overview} />);
+    rerender(
+      <ChineseCatalystIntelligence mode="live" status="error" events={[]} overview={overview} />,
+    );
     expect(screen.getByRole("status")).toHaveTextContent("催化事件暂不可用");
     expect(screen.queryByText(/retained-engine|证据截至|数据源降级/)).not.toBeInTheDocument();
   });

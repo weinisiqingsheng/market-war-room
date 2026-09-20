@@ -14,7 +14,12 @@ import {
   type AlpacaBreadthSnapshot,
   type BreadthSymbolState,
 } from "@/lib/breadth/normalize";
-import { sp500Universe } from "@/lib/breadth/universe/sp500";
+import {
+  DEFAULT_ANOMALY_UNIVERSE_ID,
+  anomalyUniverseOrDefault,
+  type AnomalyUniverseId,
+  type AnomalyUniverseMember,
+} from "./universe/registry";
 import {
   ANOMALY_CACHE_TTL_CLOCK_MS,
   ANOMALY_CACHE_TTL_HISTORY_MS,
@@ -68,7 +73,7 @@ function parseMs(iso: string): number | null {
 }
 
 function buildCandidate(input: {
-  member: (typeof sp500Universe.members)[number];
+  member: AnomalyUniverseMember;
   state: BreadthSymbolState;
   snapshot: AlpacaBreadthSnapshot | undefined;
   sectorState: BreadthSymbolState | null;
@@ -112,7 +117,18 @@ function buildCandidate(input: {
   };
 }
 
-export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
+/**
+ * Canonical live anomaly-v1 scan for a versioned universe.
+ *
+ * Universe selection changes candidate membership only — scoring, severity,
+ * ranking and missing-data handling are identical for every universe.
+ * Default `sp500` keeps every existing consumer (Overview, Intelligence,
+ * Catalysts, BriefContext) byte-for-byte canonical.
+ */
+export async function buildLiveAnomaliesOverview(
+  universeId: AnomalyUniverseId = DEFAULT_ANOMALY_UNIVERSE_ID,
+): Promise<AnomalyOverview> {
+  const universe = anomalyUniverseOrDefault(universeId);
   const creds = credentials();
   const now = Date.now();
 
@@ -120,12 +136,9 @@ export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
     fetchMarketClock(creds),
   );
 
-  const requestSymbols = [
-    ...sp500Universe.members.map((member) => member.ticker),
-    ...ALL_SECTOR_ETFS,
-  ];
+  const requestSymbols = [...universe.symbols, ...ALL_SECTOR_ETFS];
   const snapshots = await withBreadthCache(
-    "anomalies:snapshots:delayed_sip",
+    `anomalies:snapshots:delayed_sip:${universe.id}`,
     ANOMALY_CACHE_TTL_SNAPSHOTS_MS,
     () => fetchAllSnapshots(creds, requestSymbols, 200),
   );
@@ -133,7 +146,7 @@ export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
   const startIso = new Date(now - HISTORY_CALENDAR_BUFFER_DAYS * DAY_MS).toISOString();
   const endIso = new Date(now - (DELAY_MINUTES + 1) * 60_000).toISOString();
   const bars = await withBreadthCache(
-    `anomalies:history:${HISTORY_ADJUSTMENT}:${startIso.slice(0, 10)}:${endIso.slice(0, 10)}`,
+    `anomalies:history:${universe.id}:${HISTORY_ADJUSTMENT}:${startIso.slice(0, 10)}:${endIso.slice(0, 10)}`,
     ANOMALY_CACHE_TTL_HISTORY_MS,
     () =>
       fetchAllDailyBars(
@@ -150,7 +163,7 @@ export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
   const candidates: AnomalyCandidate[] = [];
   const sessionKeys: Array<string | null> = [];
   const providerTimestamps: Array<string | null> = [];
-  for (const member of sp500Universe.members) {
+  for (const member of universe.members) {
     const snapshot = snapshots[member.ticker] as AlpacaBreadthSnapshot | undefined;
     const state = normalizeBreadthSymbol(member.ticker, snapshot, clock.isOpen, now);
     const sectorEtf = sectorEtfFor(member.sector);
@@ -176,7 +189,7 @@ export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
     }
   }
 
-  const universeCount = sp500Universe.count;
+  const universeCount = universe.count;
   const coveragePct = universeCount > 0 ? candidates.length / universeCount : 0;
   const confidence = anomalyConfidence(coveragePct);
   const { generatedAt, effectiveAsOf, sessionDate } = resolveEffectiveTime({
@@ -204,10 +217,12 @@ export async function buildLiveAnomaliesOverview(): Promise<AnomalyOverview> {
     mode: "live",
     engineVersion: "anomaly-v1",
     universe: {
-      name: sp500Universe.name,
-      version: sp500Universe.version,
-      asOf: sp500Universe.asOf,
-      count: sp500Universe.count,
+      id: universe.id,
+      label: universe.label,
+      name: universe.label,
+      version: universe.version,
+      asOf: universe.asOf,
+      count: universe.count,
     },
     meta,
     universeCount,

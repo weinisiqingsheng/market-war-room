@@ -47,6 +47,7 @@ Return EXACTLY ONE JSON object.
 The ROOT object MUST contain exactly these required fields:
 version, headline, stance, overview, keyDrivers, marketInternals, macro, notableMoves, watchNext, dataQuality.
 Do NOT wrap the object inside brief, result, response, marketBrief, schema, or any other outer key.
+EVERY section that has an evidenceRefs field — stance, every overview item, every keyDriver, marketInternals, macro, every notableMove, every watchNext item, and dataQuality — MUST include a NON-EMPTY evidenceRefs array of supplied evidence IDs. Never omit evidenceRefs. Never return an empty evidenceRefs array for any section, including dataQuality.
 Array bounds: overview 1-3 items; keyDrivers 2-5 items; notableMoves 0-6 items; watchNext 1-4 items.
 Use exactly this structure (placeholders only):
 {

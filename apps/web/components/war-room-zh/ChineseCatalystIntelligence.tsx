@@ -16,7 +16,10 @@ export function ChineseCatalystIntelligence({
   overview?: CatalystOverview | null;
 }) {
   const live = mode === "live" ? (overview ?? null) : null;
-  const degraded = status === "ready" && live && Object.values(live.meta.providers).some((provider) => provider !== "ok");
+  const degraded =
+    status === "ready" &&
+    live &&
+    Object.values(live.meta.providers).some((provider) => provider !== "ok");
   return (
     <section
       id="catalyst-intelligence"

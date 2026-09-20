@@ -28,12 +28,17 @@ function safeIssues(result: { issues: SafeGenerationIssue[] }): SafeGenerationIs
 }
 
 function repairInstruction(issues: SafeGenerationIssue[]): string {
-  const lines = issues.map((item) => `${item.code} at ${item.path}`).join("\n");
+  // The specific deterministic validation message is included so the model can
+  // see WHICH field failed (for example "dataQuality.evidenceRefs must be a
+  // non-empty array."). Messages are code-derived, already truncated, and
+  // contain no prompts, secrets, or raw provider payloads.
+  const lines = issues.map((item) => `${item.code} at ${item.path}: ${item.message}`).join("\n");
   return `Your previous response failed deterministic validation.
 Correct the response using ONLY the same supplied evidence.
 Do not add facts.
 Do not calculate new numbers.
 Do not add new evidence IDs.
+Every section that has an evidenceRefs field — including dataQuality — must contain a NON-EMPTY evidenceRefs array of supplied evidence IDs; never omit it.
 Return the complete ai-brief-v1 JSON object.
 Validation issues:
 ${lines}`;

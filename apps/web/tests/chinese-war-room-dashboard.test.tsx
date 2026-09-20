@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ChineseWarRoomDashboard } from "@/features/war-room-zh/ChineseWarRoomDashboard";
 
 vi.mock("@/features/home/useMarketOverview", () => ({
@@ -68,5 +69,34 @@ describe("ChineseWarRoomDashboard", () => {
 
     const text = screen.getByRole("main").textContent ?? "";
     expect(text.indexOf("市场环境")).toBeLessThan(text.indexOf("市场脉搏"));
+  });
+
+  it("localizes navigation, suggested questions, and demo catalyst presentation", async () => {
+    const user = userEvent.setup();
+    render(
+      <ChineseWarRoomDashboard
+        mode="demo"
+        macroMode="demo"
+        regimeMode="demo"
+        breadthMode="demo"
+        anomaliesMode="demo"
+        catalystsMode="demo"
+      />,
+    );
+
+    expect(screen.getByRole("navigation", { name: "主要导航" })).toHaveTextContent("概览市场情报");
+    expect(screen.queryByText("Overview")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "打开主要导航" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await user.click(screen.getByRole("button", { name: "打开主要导航" }));
+    expect(screen.getByRole("navigation", { name: "移动端主要导航" })).toBeInTheDocument();
+
+    expect(screen.getByRole("button", { name: "为什么 FICO 跌幅这么大？" })).toBeInTheDocument();
+    expect(screen.queryByText("Why is FICO down so much?")).not.toBeInTheDocument();
+    expect(screen.getByText("美伊紧张局势升级")).toBeInTheDocument();
+    expect(screen.getByText(/通胀风险上升/)).toBeInTheDocument();
+    expect(screen.queryByText("US–Iran tensions escalate")).not.toBeInTheDocument();
   });
 });

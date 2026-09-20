@@ -19,7 +19,7 @@ describe("HomeDashboard", () => {
       "Market Anomalies",
       "Catalyst Intelligence",
       "Sakura AI Market Brief",
-      "Ask War Room",
+      "Ask Sakura",
     ]);
   });
 

@@ -73,10 +73,8 @@ export function HomeDashboard({
     demo: anomaliesDemo,
     overview: anomaliesOverview,
   } = useAnomaliesOverview(anomaliesMode);
-  const {
-    status: catalystsStatus,
-    overview: catalystsOverview,
-  } = useCatalystsOverview(catalystsMode);
+  const { status: catalystsStatus, overview: catalystsOverview } =
+    useCatalystsOverview(catalystsMode);
   const data = demoMarketData;
   const isLive = mode === "live";
   const feed = meta?.feed ?? null;
@@ -160,7 +158,7 @@ export function HomeDashboard({
           {/* 6 · AI Market Brief (grounded API card for demo + live) */}
           <AiMarketBriefPanel />
 
-          {/* 7 · Ask War Room (preview) */}
+          {/* 7 · Ask Sakura (grounded Q&A over current market evidence) */}
           <AskWarRoom suggestions={data.suggestedQuestions} />
         </div>
       </main>

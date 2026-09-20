@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import type { MarketDataMode } from "@war-room/types";
 import { demoHeaderNav, demoSession } from "@/data/demo-market";
 import { Header } from "@/components/Header";
+import { DEFAULT_ANOMALY_UNIVERSE_ID } from "@/lib/anomalies/universe/registry";
+import type { AnomalyUniverseId } from "@/lib/anomalies/universe/types";
 import { useMarketOverview } from "@/features/home/useMarketOverview";
 import { useMacroOverview } from "@/features/home/useMacroOverview";
 import { useBreadthOverview } from "@/features/home/useBreadthOverview";
@@ -13,6 +16,9 @@ import { MarketsWorkspace } from "./MarketsWorkspace";
  * /markets shell — same header/nav + page chrome as Overview, deterministic
  * Markets data workspace in the main slot, no AI modules. Hooks are owned here
  * once and shared by both the header meta and the workspace sections.
+ *
+ * V1.1E: the anomaly universe is Markets-only local state (default S&P 500).
+ * It is never persisted and never shared with Overview/Intelligence/Catalysts.
  */
 export function MarketsDashboard({
   mode,
@@ -25,17 +31,27 @@ export function MarketsDashboard({
   breadthMode: MarketDataMode;
   anomaliesMode: MarketDataMode;
 }) {
+  const [anomaliesUniverse, setAnomaliesUniverse] = useState<AnomalyUniverseId>(
+    DEFAULT_ANOMALY_UNIVERSE_ID,
+  );
   const market = useMarketOverview(mode);
   const macro = useMacroOverview(macroMode);
   const breadth = useBreadthOverview(breadthMode);
-  const anomalies = useAnomaliesOverview(anomaliesMode);
+  const anomalies = useAnomaliesOverview(anomaliesMode, anomaliesUniverse);
 
   return (
     <div className="flex min-h-dvh flex-col">
       <Header nav={demoHeaderNav} session={demoSession} mode={market.mode} meta={market.meta} />
 
       <main className="mx-auto w-full max-w-[1360px] flex-1 px-4 pb-16 sm:px-6">
-        <MarketsWorkspace market={market} macro={macro} breadth={breadth} anomalies={anomalies} />
+        <MarketsWorkspace
+          market={market}
+          macro={macro}
+          breadth={breadth}
+          anomalies={anomalies}
+          anomaliesUniverse={anomaliesUniverse}
+          onAnomaliesUniverseChange={setAnomaliesUniverse}
+        />
       </main>
 
       <footer className="border-t border-line bg-white/50 py-6">

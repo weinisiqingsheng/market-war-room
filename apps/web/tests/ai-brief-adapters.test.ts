@@ -32,7 +32,7 @@ function regime(): RegimeOverview {
   return { mode: "live", meta: { mode: "live", asOf: "2026-09-04T19:45:00Z" }, result: { score: 48.98, displayScore: 49, label: "CAUTIOUS / NEUTRAL", coverage: 0.94, confidence: "high", components: [], positiveDrivers: [{ id: "vix", name: "VIX", direction: "positive", impact: 2, reason: "VIX supportive" }], negativeDrivers: [{ id: "wti", name: "WTI", direction: "negative", impact: -3, reason: "Oil pressure" }], staleInputs: [], missingInputs: [], asOf: "2026-09-04T19:45:00Z", engineVersion: "regime-v1" } };
 }
 function breadth(): BreadthOverview {
-  return { mode: "live", score: 24, displayScore: 24, engineVersion: "breadth-v1", state: { key: "BROAD_SELLOFF", label: "Broad Selloff" }, universe: { name: "S&P 500", version: "u", asOf: "x", count: 503 }, meta: { provider: "alpaca", feed: "delayed_sip", delayMinutes: 15, asOf: "2026-09-04T19:30:00Z", marketOpen: false }, metrics: { universeCount: 503, currentCoverageCount: 500, historical20CoverageCount: 500, historical50CoverageCount: 500, coveragePct: 0.99, advancers: 170, decliners: 317, unchanged: 13, advanceRatio: 0.349, above20Pct: 35.0, above50Pct: 46.9, newHighs20: 5, newLows20: 23 }, confidence: "high" };
+  return { mode: "live", score: 24, displayScore: 24, engineVersion: "breadth-v1", state: { key: "BROAD_SELLOFF", label: "Broad Selloff" }, universe: { name: "S&P 500", version: "u", asOf: "x", count: 503 }, meta: { provider: "alpaca", feed: "delayed_sip", delayMinutes: 15, asOf: "2026-09-04T19:30:00Z", marketOpen: false }, metrics: { universeCount: 503, currentCoverageCount: 500, historical20CoverageCount: 500, historical50CoverageCount: 500, coveragePct: 0.99, advancers: 170, decliners: 317, unchanged: 13, advanceRatio: 0.349, above20Pct: 0.35, above50Pct: 0.469, newHighs20: 5, newLows20: 23 }, confidence: "high" };
 }
 function anomaly(): AnomalyOverview {
   return {
@@ -74,11 +74,14 @@ describe("pure domain adapters", () => {
     expect(missing.sourceMeta.available).toBe(false);
     expect(missing.evidenceInput).toBeNull();
   });
-  it("breadth: advanceRatio×100 only, delayed/coverage/version preserved", () => {
+  it("breadth: advanceRatio/above20/above50 ×100 once, delayed/coverage/version preserved", () => {
     const out = adaptBreadthOverview(breadth());
     expect(out.evidenceInput?.advanceRatioPct).toBeCloseTo(34.9, 6);
-    expect(out.evidenceInput?.pctAbove20).toBe(35.0);
-    expect(out.evidenceInput?.pctAbove50).toBe(46.9);
+    expect(out.evidenceInput?.pctAbove20).toBeCloseTo(35.0, 6);
+    expect(out.evidenceInput?.pctAbove50).toBeCloseTo(46.9, 6);
+    // Coverage stays a 0–1 ratio for confidence math.
+    expect(out.evidenceInput?.coverage).toBe(0.99);
+    expect(out.quality.coverage).toBe(0.99);
     expect(out.sourceMeta.freshness).toBe("delayed");
     expect(out.sourceMeta.version).toBe("breadth-v1");
   });

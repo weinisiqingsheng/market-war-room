@@ -101,9 +101,11 @@ export interface BreadthEvidenceInput {
   asOf: string | null;
   freshness: EvidenceFreshness;
   confidence: EvidenceConfidence | null;
+  /** 0–1 coverage ratio (confidence input, never a display percentage). */
   coverage: number | null;
   score: number | null;
   participation: string | null;
+  /** Percentages (0–100) — converted once at the adapter boundary. */
   advanceRatioPct: number | null;
   pctAbove20: number | null;
   pctAbove50: number | null;

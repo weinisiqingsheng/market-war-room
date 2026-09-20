@@ -44,7 +44,9 @@ function evaluate(content: string, input: GenerateChineseAskInput): Evaluation {
     return {
       schemaIssues: [
         schemaIssue,
-        ...parsed.errors.slice(0, 5).map((message) => ({ ...schemaIssue, message: message.slice(0, 160) })),
+        ...parsed.errors
+          .slice(0, 5)
+          .map((message) => ({ ...schemaIssue, message: message.slice(0, 160) })),
       ],
     };
   }
@@ -62,7 +64,13 @@ export async function generateChineseAskAnswer(
 ): Promise<AskGenerationResult> {
   const { question, selection, inputConfidence, fingerprint, provider } = input;
   if (inputConfidence.label === "insufficient") {
-    return { status: "insufficient_grounded_data", answer: null, attempts: 0, contextFingerprint: fingerprint, inputConfidence };
+    return {
+      status: "insufficient_grounded_data",
+      answer: null,
+      attempts: 0,
+      contextFingerprint: fingerprint,
+      inputConfidence,
+    };
   }
   const baseMessages: LlmMessage[] = [
     { role: "system", content: CHINESE_ASK_SYSTEM_PROMPT },
@@ -70,19 +78,78 @@ export async function generateChineseAskAnswer(
   ];
   const call = async (messages: LlmMessage[]) => {
     try {
-      return { ok: true as const, content: (await provider.complete({ messages, temperature: 0.2, structuredOutput: "json_object" })).content };
+      return {
+        ok: true as const,
+        content: (
+          await provider.complete({ messages, temperature: 0.2, structuredOutput: "json_object" })
+        ).content,
+      };
     } catch (error) {
-      return { ok: false as const, category: error instanceof Error && "category" in error ? String((error as { category: unknown }).category) : "unknown" };
+      return {
+        ok: false as const,
+        category:
+          error instanceof Error && "category" in error
+            ? String((error as { category: unknown }).category)
+            : "unknown",
+      };
     }
   };
   const first = await call(baseMessages);
-  if (!first.ok) return { status: "unavailable", answer: null, attempts: 1, contextFingerprint: fingerprint, inputConfidence, reason: "provider_error", providerErrorCategory: first.category };
+  if (!first.ok)
+    return {
+      status: "unavailable",
+      answer: null,
+      attempts: 1,
+      contextFingerprint: fingerprint,
+      inputConfidence,
+      reason: "provider_error",
+      providerErrorCategory: first.category,
+    };
   const firstEval = evaluate(first.content, input);
-  if (firstEval.answer) return { status: "generated", answer: firstEval.answer, attempts: 1, contextFingerprint: fingerprint, inputConfidence };
-  const issues = firstEval.schemaIssues?.length ? firstEval.schemaIssues : (firstEval.groundingIssues ?? []);
-  const second = await call([...baseMessages, { role: "assistant", content: first.content }, { role: "user", content: repairInstruction(issues) }]);
-  if (!second.ok) return { status: "unavailable", answer: null, attempts: 2, contextFingerprint: fingerprint, inputConfidence, reason: "provider_error", providerErrorCategory: second.category };
+  if (firstEval.answer)
+    return {
+      status: "generated",
+      answer: firstEval.answer,
+      attempts: 1,
+      contextFingerprint: fingerprint,
+      inputConfidence,
+    };
+  const issues = firstEval.schemaIssues?.length
+    ? firstEval.schemaIssues
+    : (firstEval.groundingIssues ?? []);
+  const second = await call([
+    ...baseMessages,
+    { role: "assistant", content: first.content },
+    { role: "user", content: repairInstruction(issues) },
+  ]);
+  if (!second.ok)
+    return {
+      status: "unavailable",
+      answer: null,
+      attempts: 2,
+      contextFingerprint: fingerprint,
+      inputConfidence,
+      reason: "provider_error",
+      providerErrorCategory: second.category,
+    };
   const secondEval = evaluate(second.content, input);
-  if (secondEval.answer) return { status: "generated", answer: secondEval.answer, attempts: 2, contextFingerprint: fingerprint, inputConfidence };
-  return { status: "unavailable", answer: null, attempts: 2, contextFingerprint: fingerprint, inputConfidence, reason: secondEval.schemaIssues?.length ? "schema_validation_failed" : "grounding_validation_failed", validationIssues: secondEval.schemaIssues ?? secondEval.groundingIssues };
+  if (secondEval.answer)
+    return {
+      status: "generated",
+      answer: secondEval.answer,
+      attempts: 2,
+      contextFingerprint: fingerprint,
+      inputConfidence,
+    };
+  return {
+    status: "unavailable",
+    answer: null,
+    attempts: 2,
+    contextFingerprint: fingerprint,
+    inputConfidence,
+    reason: secondEval.schemaIssues?.length
+      ? "schema_validation_failed"
+      : "grounding_validation_failed",
+    validationIssues: secondEval.schemaIssues ?? secondEval.groundingIssues,
+  };
 }
