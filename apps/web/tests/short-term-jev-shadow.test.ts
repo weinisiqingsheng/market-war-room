@@ -60,6 +60,8 @@ describe("offline Jev shadow records", () => {
         facts: [],
         provenance: { source: "fixture", sourceFingerprint: "e".repeat(64) },
       },
+      marketInputStatus: "fixture_market_input",
+      modelOutputStatus: "fixture_model_output",
     });
     expect(JSON.stringify(record)).not.toMatch(/api[_-]?key|authorization|prompt/i);
     expect(record.stateFingerprint).toMatch(/^[a-f0-9]{64}$/);
@@ -101,6 +103,8 @@ describe("offline Jev shadow records", () => {
         facts: [],
         provenance: { source: "fixture", sourceFingerprint: "e".repeat(64) },
       },
+      marketInputStatus: "fixture_market_input",
+      modelOutputStatus: "fixture_model_output",
     });
     store.append(record);
     expect(store.list()).toEqual([record]);
