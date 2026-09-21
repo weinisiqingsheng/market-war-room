@@ -19,6 +19,7 @@ import type {
   TickerSourceMeta,
 } from "./types";
 import { TICKER_CONTEXT_VERSION } from "./types";
+import { projectTickerSummary, type SafeTickerSummary } from "./summary";
 
 export interface SafeTickerFact {
   id: string;
@@ -47,6 +48,12 @@ export interface SafeTickerContext {
   confidence: TickerResearchConfidence;
   factCount: number;
   facts: SafeTickerFact[];
+  /**
+   * V1.2C additive typed summary (ticker-summary-v1): already-computed
+   * ticker-context-v1 numbers, strictly allowlisted. `fact.data` itself is
+   * still never exposed — see summary.ts for the exact field contract.
+   */
+  summary: SafeTickerSummary;
   fingerprint: string;
 }
 
@@ -98,8 +105,11 @@ export function projectTickerContext(context: TickerResearchContext): SafeTicker
     confidence: context.confidence,
     factCount: context.facts.length,
     facts: context.facts.map(projectTickerFact),
+    summary: projectTickerSummary(context),
     fingerprint: context.fingerprint,
   };
 }
+
+export type { SafeTickerSummary } from "./summary";
 
 export type { TickerResearchStatus };

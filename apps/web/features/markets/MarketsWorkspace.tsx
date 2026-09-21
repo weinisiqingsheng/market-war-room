@@ -6,6 +6,7 @@ import { MacroPulse } from "@/components/MacroPulse";
 import { MarketBreadthCard } from "@/components/MarketBreadthCard";
 import { MarketAnomaliesCard } from "@/components/MarketAnomaliesCard";
 import { AnomalyUniverseSelector } from "@/components/AnomalyUniverseSelector";
+import { TickerIntelligence } from "@/components/TickerIntelligence";
 import { DEFAULT_ANOMALY_UNIVERSE_ID } from "@/lib/anomalies/universe/registry";
 import type { AnomalyUniverseId } from "@/lib/anomalies/universe/types";
 import type { MarketOverviewState } from "@/features/home/useMarketOverview";
@@ -115,7 +116,12 @@ export function MarketsWorkspace({
         benchmark={benchmark}
       />
 
-      {/* 3 · Macro Dashboard — six cells, per-source cadence. */}
+      {/* 3 · Ticker Intelligence (V1.2C) — on-demand research for one supported
+          US equity. Self-contained client section: it fetches only when the user
+          submits a symbol and never touches the other Markets modules' state. */}
+      <TickerIntelligence />
+
+      {/* 4 · Macro Dashboard — six cells, per-source cadence. */}
       <MacroPulse
         signals={macro.signals}
         status={macro.status}
@@ -124,7 +130,7 @@ export function MarketsWorkspace({
         title="Macro Dashboard"
       />
 
-      {/* 4 · S&P 500 breadth — breadth-v1 output as-is. */}
+      {/* 5 · S&P 500 breadth — breadth-v1 output as-is. */}
       <MarketBreadthCard
         mode={breadth.mode}
         status={breadth.status}
@@ -132,7 +138,7 @@ export function MarketsWorkspace({
         overview={breadth.overview}
       />
 
-      {/* 5 · Anomaly scanner — anomaly-v1 output as-is; universe selection is
+      {/* 6 · Anomaly scanner — anomaly-v1 output as-is; universe selection is
           Markets-only local state and never touches Overview/Intelligence. */}
       <div className="space-y-3">
         <AnomalyUniverseSelector

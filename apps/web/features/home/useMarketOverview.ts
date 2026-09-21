@@ -39,22 +39,36 @@ export function useMarketOverview(mode: MarketDataMode): MarketOverviewState {
     if (mode === "demo") return;
 
     let disposed = false;
+    let controller: AbortController | null = null;
+    let loadSeq = 0;
 
     const load = async () => {
+      // Abort a superseded request and keep a handle so navigation away from
+      // this page frees the browser connection instead of leaving the request
+      // (and its socket) alive until the timeout fires.
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      const myLoad = ++loadSeq;
+      const timer = window.setTimeout(() => current.abort(), FETCH_TIMEOUT_MS);
+      const stale = () => disposed || myLoad !== loadSeq;
       try {
         const response = await fetch("/api/market/overview", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: current.signal,
         });
-        if (disposed) return;
+        if (stale()) return;
         if (!response.ok) throw new Error(`overview ${response.status}`);
         const json = (await response.json()) as MarketOverview;
-        if (disposed) return;
+        if (stale()) return;
         setOverview(json);
         setStatus("ready");
       } catch {
-        if (disposed) return;
+        if (stale()) return;
         setStatus("error");
+      } finally {
+        window.clearTimeout(timer);
+        if (controller === current) controller = null;
       }
     };
 
@@ -74,6 +88,7 @@ export function useMarketOverview(mode: MarketDataMode): MarketOverviewState {
     return () => {
       disposed = true;
       window.clearInterval(timer);
+      controller?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);

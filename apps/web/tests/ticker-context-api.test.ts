@@ -135,7 +135,31 @@ describe("GET /api/intelligence/ticker (V1.2A)", () => {
       context: { version: TICKER_CONTEXT_VERSION, factCount: 2 },
     });
     for (const fact of body.context.facts) expect(fact).not.toHaveProperty("data");
-    expect(JSON.stringify(body)).not.toContain("previousClose");
+    // V1.2C: numbers travel only through the allowlisted `summary` DTO, so the
+    // previous "no numeric key anywhere in the body" proxy is replaced by its
+    // real intent — no raw fact data, no provider ids/URLs, no credentials.
+    const serialized = JSON.stringify(body);
+    for (const forbidden of [
+      "newsId",
+      "filingUrl",
+      '"url"',
+      "barTimestamp",
+      "cik",
+      "apiKey",
+      "Authorization",
+    ]) {
+      expect(serialized).not.toContain(forbidden);
+    }
+    expect(body.context.summary.version).toBe("ticker-summary-v1");
+    expect(body.context.summary.price).toEqual({
+      value: 104,
+      previousClose: 100,
+      changePct: null,
+      direction: null,
+      sessionDate: null,
+      feed: "delayed_sip",
+      delayMinutes: null,
+    });
   });
 
   it("maps unknown symbols to 404 and unsupported security types to 422", async () => {

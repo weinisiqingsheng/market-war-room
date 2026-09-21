@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach } from "vitest";
 import { MarketsWorkspace } from "@/features/markets/MarketsWorkspace";
@@ -108,8 +108,11 @@ describe("Markets anomaly universe selector (V1.1E)", () => {
     expect(screen.getByRole("note")).toHaveTextContent(/Nasdaq 100/);
     expect(screen.getByRole("note")).toHaveTextContent(/101 securities/);
     // API-provided rows are rendered as-is: the S&P-only demo row disappears.
-    expect(screen.queryByText("NEOV")).not.toBeInTheDocument();
-    expect(screen.getByText("NVDA")).toBeInTheDocument();
+    // Scoped to the anomaly card (V1.2C added an "NVDA" example chip elsewhere
+    // on the page, which is unrelated to the scan rows).
+    const anomalyCard = document.getElementById("market-anomalies") as HTMLElement;
+    expect(within(anomalyCard).queryByText("NEOV")).not.toBeInTheDocument();
+    expect(within(anomalyCard).getByText("NVDA")).toBeInTheDocument();
   });
 
   it("does not refetch when the already-selected universe is clicked again", async () => {

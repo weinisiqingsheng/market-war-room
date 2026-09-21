@@ -23,27 +23,42 @@ const FETCH_TIMEOUT_MS = 25_000;
  */
 export function useCatalystsOverview(mode: MarketDataMode): CatalystsOverviewState {
   const [overview, setOverview] = useState<CatalystOverview | null>(null);
-  const [status, setStatus] = useState<CatalystsOverviewStatus>(mode === "demo" ? "ready" : "loading");
+  const [status, setStatus] = useState<CatalystsOverviewStatus>(
+    mode === "demo" ? "ready" : "loading",
+  );
 
   useEffect(() => {
     if (mode === "demo") return;
     let disposed = false;
+    let controller: AbortController | null = null;
+    let loadSeq = 0;
     const load = async () => {
+      // Catalysts is the slowest page request; unmounting must cancel it so a
+      // soft navigation is not queued behind a request nobody is waiting for.
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      const myLoad = ++loadSeq;
+      const timer = window.setTimeout(() => current.abort(), FETCH_TIMEOUT_MS);
+      const stale = () => disposed || myLoad !== loadSeq;
       try {
         const response = await fetch("/api/catalysts/overview", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: current.signal,
         });
-        if (disposed) return;
+        if (stale()) return;
         if (!response.ok) throw new Error(`catalysts ${response.status}`);
         const json = (await response.json()) as CatalystOverview;
-        if (disposed) return;
+        if (stale()) return;
         if (!json.items || !Array.isArray(json.items)) throw new Error("bad payload");
         setOverview(json);
         setStatus("ready");
       } catch {
-        if (disposed) return;
+        if (stale()) return;
         setStatus("error");
+      } finally {
+        window.clearTimeout(timer);
+        if (controller === current) controller = null;
       }
     };
     const refresh = () => {
@@ -59,6 +74,7 @@ export function useCatalystsOverview(mode: MarketDataMode): CatalystsOverviewSta
     return () => {
       disposed = true;
       clearInterval(interval);
+      controller?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);

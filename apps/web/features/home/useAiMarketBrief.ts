@@ -30,32 +30,40 @@ export function useAiMarketBrief(): UseAiMarketBriefResult {
   const [response, setResponse] = useState<AiMarketBriefApiResponse | null>(null);
   const requestId = useRef(0);
 
-  const load = useCallback(async (): Promise<AbortController | null> => {
+  const load = useCallback(async (controller: AbortController): Promise<void> => {
+    // The controller is created and registered by the caller BEFORE awaiting, so
+    // unmounting can abort an in-flight brief instead of leaving the request
+    // (12–18s) holding a browser connection during a soft navigation.
     const id = ++requestId.current;
-    const controller = new AbortController();
     try {
-      const res = await fetch("/api/ai/market-brief", { cache: "no-store", signal: controller.signal });
+      const res = await fetch("/api/ai/market-brief", {
+        cache: "no-store",
+        signal: controller.signal,
+      });
       const json = (await res.json()) as AiMarketBriefApiResponse;
-      if (requestId.current !== id) return null;
+      if (requestId.current !== id) return;
       setResponse(json);
       setStatus("ready");
     } catch {
-      if (requestId.current !== id) return null;
+      if (requestId.current !== id) return;
       setStatus("error");
     }
-    return controller;
   }, []);
 
   useEffect(() => {
     let activeController: AbortController | null = null;
-    const run = async () => {
-      activeController = await load();
+    const run = () => {
+      activeController?.abort();
+      const controller = new AbortController();
+      activeController = controller;
+      void load(controller).finally(() => {
+        if (activeController === controller) activeController = null;
+      });
     };
-    void run();
+    run();
     const interval = setInterval(() => {
       if (document.hidden) return;
-      activeController?.abort();
-      void run();
+      run();
     }, REFRESH_MS);
     return () => {
       activeController?.abort();
@@ -64,7 +72,7 @@ export function useAiMarketBrief(): UseAiMarketBriefResult {
   }, [load]);
 
   const refetch = useCallback(() => {
-    void load();
+    void load(new AbortController());
   }, [load]);
 
   return { status, response, refetch };

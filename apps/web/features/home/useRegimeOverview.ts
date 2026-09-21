@@ -38,27 +38,40 @@ export function useRegimeOverview(mode: MarketDataMode): RegimeOverviewState {
     if (mode === "demo") return;
 
     let disposed = false;
+    let controller: AbortController | null = null;
+    let loadSeq = 0;
 
     const load = async () => {
+      // Superseded requests are cancelled, and unmounting aborts the in-flight
+      // fetch so the browser connection is released for the next navigation.
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      const myLoad = ++loadSeq;
+      const timer = window.setTimeout(() => current.abort(), FETCH_TIMEOUT_MS);
+      const stale = () => disposed || myLoad !== loadSeq;
       try {
         const response = await fetch("/api/regime/overview", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: current.signal,
         });
-        if (disposed) return;
+        if (stale()) return;
         if (!response.ok) throw new Error(`regime overview ${response.status}`);
         const json = (await response.json()) as {
           result: RegimeResult | null;
           meta: { asOf: string | null };
         };
-        if (disposed) return;
+        if (stale()) return;
         if (!json.result) throw new Error("regime result missing");
         setOverview(json.result);
         setAsOf(json.result.asOf ?? json.meta.asOf ?? null);
         setStatus("ready");
       } catch {
-        if (disposed) return;
+        if (stale()) return;
         setStatus("error");
+      } finally {
+        window.clearTimeout(timer);
+        if (controller === current) controller = null;
       }
     };
 
@@ -78,6 +91,7 @@ export function useRegimeOverview(mode: MarketDataMode): RegimeOverviewState {
     return () => {
       disposed = true;
       window.clearInterval(timer);
+      controller?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);

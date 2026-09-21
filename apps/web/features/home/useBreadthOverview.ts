@@ -38,17 +38,27 @@ export function useBreadthOverview(mode: MarketDataMode): BreadthOverviewState {
     if (mode === "demo") return;
 
     let disposed = false;
+    let controller: AbortController | null = null;
+    let loadSeq = 0;
 
     const load = async () => {
+      // Cancellation handles the in-flight request so leaving this page frees
+      // the browser connection immediately (the shared socket pool is small).
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      const myLoad = ++loadSeq;
+      const timer = window.setTimeout(() => current.abort(), FETCH_TIMEOUT_MS);
+      const stale = () => disposed || myLoad !== loadSeq;
       try {
         const response = await fetch("/api/breadth/overview", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: current.signal,
         });
-        if (disposed) return;
+        if (stale()) return;
         if (!response.ok) throw new Error(`breadth overview ${response.status}`);
         const json = (await response.json()) as BreadthOverview;
-        if (disposed) return;
+        if (stale()) return;
         if (typeof json.score !== "number" && json.score !== null) {
           throw new Error("unexpected breadth payload");
         }
@@ -56,8 +66,11 @@ export function useBreadthOverview(mode: MarketDataMode): BreadthOverviewState {
         setAsOf(json.meta.asOf ?? null);
         setStatus("ready");
       } catch {
-        if (disposed) return;
+        if (stale()) return;
         setStatus("error");
+      } finally {
+        window.clearTimeout(timer);
+        if (controller === current) controller = null;
       }
     };
 
@@ -77,6 +90,7 @@ export function useBreadthOverview(mode: MarketDataMode): BreadthOverviewState {
     return () => {
       disposed = true;
       window.clearInterval(timer);
+      controller?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);

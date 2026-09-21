@@ -226,6 +226,8 @@ describe("Markets workspace sections", () => {
       "Markets",
       "Major Indexes",
       "Sector Rotation",
+      // V1.2C: on-demand ticker research sits after Sector Rotation.
+      "Ticker Intelligence",
       "Macro Dashboard",
       "Market Breadth",
       "Market Anomalies",

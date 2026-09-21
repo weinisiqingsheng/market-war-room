@@ -32,23 +32,36 @@ export function useMacroOverview(mode: MarketDataMode): MacroOverviewState {
     if (mode === "demo") return;
 
     let disposed = false;
+    let controller: AbortController | null = null;
+    let loadSeq = 0;
 
     const load = async () => {
+      // Cancel the superseded request and expose a handle so unmounting this
+      // page aborts the in-flight fetch instead of holding a socket.
+      controller?.abort();
+      const current = new AbortController();
+      controller = current;
+      const myLoad = ++loadSeq;
+      const timer = window.setTimeout(() => current.abort(), FETCH_TIMEOUT_MS);
+      const stale = () => disposed || myLoad !== loadSeq;
       try {
         const response = await fetch("/api/macro/overview", {
           cache: "no-store",
-          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          signal: current.signal,
         });
-        if (disposed) return;
+        if (stale()) return;
         if (!response.ok) throw new Error(`macro overview ${response.status}`);
         const json = (await response.json()) as MacroOverview;
-        if (disposed) return;
+        if (stale()) return;
         if (!Array.isArray(json.signals)) throw new Error("unexpected macro payload");
         setOverview(json);
         setStatus("ready");
       } catch {
-        if (disposed) return;
+        if (stale()) return;
         setStatus("error");
+      } finally {
+        window.clearTimeout(timer);
+        if (controller === current) controller = null;
       }
     };
 
@@ -68,6 +81,7 @@ export function useMacroOverview(mode: MarketDataMode): MacroOverviewState {
     return () => {
       disposed = true;
       window.clearInterval(timer);
+      controller?.abort();
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);
