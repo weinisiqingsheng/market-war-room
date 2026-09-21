@@ -18,13 +18,14 @@ export interface VerifiedShadowRunDeps {
   researchDeps?: TickerResearchDeps;
   jevService?: JevService;
   store?: ShortTermShadowStore;
+  outputMode?: "fixture" | "real";
 }
 
 export type VerifiedShadowRunResult =
   | {
       status: "ready";
       marketInputStatus: "verified_market_input";
-      modelOutputStatus: "fixture_model_output";
+      modelOutputStatus: "fixture_model_output" | "real_jev_model_output";
       contextStatus: VerifiedMarketSnapshot["contextStatus"];
       context: VerifiedMarketSnapshot["context"];
       state: VerifiedMarketSnapshot["state"];
@@ -49,26 +50,32 @@ export async function runVerifiedTickerShadow(
   const jevService = deps.jevService ?? createJevService({ transport: createFixtureTransport() });
   const store = deps.store ?? createInMemoryShadowStore();
   const assessment = await jevService.assess(request, bridged.state);
-  if (assessment.status !== "fixture") {
+  const outputMode = deps.outputMode ?? "fixture";
+  const expectedStatus = outputMode === "real" ? "verified" : "fixture";
+  if (assessment.status !== expectedStatus) {
     return {
       status: "unavailable",
       requestedSymbol: request.ticker,
-      reason: "fixture_model_output_unavailable",
+      reason:
+        assessment.error?.code ??
+        `${outputMode === "real" ? "real_jev" : "fixture"}_model_output_unavailable`,
     };
   }
+  const modelOutputStatus =
+    outputMode === "real" ? "real_jev_model_output" : "fixture_model_output";
 
   const shadowRecord = buildShadowRecord({
     assessment,
     request,
     marketState: bridged.state,
     marketInputStatus: "verified_market_input",
-    modelOutputStatus: "fixture_model_output",
+    modelOutputStatus,
   });
   store.append(shadowRecord);
   return {
     status: "ready",
     marketInputStatus: "verified_market_input",
-    modelOutputStatus: "fixture_model_output",
+    modelOutputStatus,
     contextStatus: bridged.contextStatus,
     context: bridged.context,
     state: bridged.state,

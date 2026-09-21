@@ -5,7 +5,7 @@ export const SHORT_TERM_SHADOW_RECORD_VERSION = "short-term-shadow-record-v1" as
 
 export type ShortTermMarketInputStatus = "verified_market_input" | "fixture_market_input";
 export type ShortTermModelOutputStatus =
-  "fixture_model_output" | "verified_model_output" | "unavailable";
+  "fixture_model_output" | "real_jev_model_output" | "verified_model_output" | "unavailable";
 
 export interface ShortTermShadowRecord {
   version: typeof SHORT_TERM_SHADOW_RECORD_VERSION;
