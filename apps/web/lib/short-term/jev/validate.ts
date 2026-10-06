@@ -1,5 +1,6 @@
 import "server-only";
 import { JevAdapterError } from "./errors";
+import { auditScoreAnswer } from "../evaluation/score-contract";
 import type {
   JevChoiceQuestion,
   JevQuestionMap,
@@ -72,6 +73,17 @@ function validateScore(answer: JevProviderAnswer, question: JevScoreQuestion): J
   const confidence = finiteUnit(answer.confidence)
     ? answer.confidence
     : invalid("Score confidence is invalid.");
+  const scoreAudit = auditScoreAnswer(
+    { type: "score", score: answer.score, legend: { ...answer.legend }, probabilities, confidence },
+    question,
+  );
+  if (!scoreAudit.valid) {
+    if (scoreAudit.issues.includes("score_out_of_range"))
+      invalid("Score value is outside the declared rubric range.");
+    if (scoreAudit.issues.includes("score_not_probability_weighted"))
+      invalid("Score value is not probability-weighted within the provider precision tolerance.");
+    invalid(`Score contract is invalid: ${scoreAudit.issues.join(", ")}`);
+  }
   return {
     type: "score",
     score: answer.score,

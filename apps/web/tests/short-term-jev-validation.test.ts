@@ -15,7 +15,7 @@ const valid: JevProviderResponse = {
     },
     downside_concern: {
       type: "score",
-      score: 1.2,
+      score: 1,
       legend: { "0": "Low", "1": "Moderate", "2": "High" },
       probabilities: { "0": 0.2, "1": 0.6, "2": 0.2 },
       confidence: 0.4,

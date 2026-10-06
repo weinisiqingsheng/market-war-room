@@ -7,11 +7,9 @@ import {
   REAL_JEV_PILOT_CONFIRMATION,
   runRealJevShadowPilot,
 } from "@/lib/short-term/pilot/real-shadow-pilot";
+import { createRealPilotShadowStore } from "@/lib/short-term/pilot/storage";
 import { runVerifiedTickerShadow } from "@/lib/short-term/shadow/runner";
-import {
-  createInMemoryShadowStore,
-  createLocalJsonlShadowStore,
-} from "@/lib/short-term/shadow/store";
+import { createInMemoryShadowStore } from "@/lib/short-term/shadow/store";
 
 const args = new Set(process.argv.slice(2));
 const symbols = ["NVDA", "TSLA", "AAPL"] as const;
@@ -57,9 +55,11 @@ if (!args.has("--real") || !args.has("--confirm-real-jev-pilot")) {
   throw new Error("Private pilot requires --dry-run, or both --real and --confirm-real-jev-pilot.");
 }
 
-const outputPath = `/private/tmp/market-war-room/jev-shadow/real-pilot-${Date.now()}.jsonl`;
+const durableStore = createRealPilotShadowStore();
 const report = await runRealJevShadowPilot({
   confirmation: REAL_JEV_PILOT_CONFIRMATION,
-  shadowStore: createLocalJsonlShadowStore(outputPath),
+  shadowStore: durableStore,
 });
-console.log(JSON.stringify({ mode: "real_jev_shadow", outputPath, report }, null, 2));
+console.log(
+  JSON.stringify({ mode: "real_jev_shadow", outputPath: durableStore.filePath, report }, null, 2),
+);

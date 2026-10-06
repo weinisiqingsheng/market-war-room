@@ -15,6 +15,11 @@ import { JEV_MODEL } from "../jev/types";
 import { runVerifiedTickerShadow } from "../shadow/runner";
 import type { ShortTermShadowStore } from "../shadow/store";
 
+type ReadyShadow = Extract<
+  Awaited<ReturnType<typeof runVerifiedTickerShadow>>,
+  { status: "ready" }
+>;
+
 export const REAL_JEV_PILOT_CONFIRMATION = "CONFIRM_REAL_JEV_SHADOW_PILOT" as const;
 export const REAL_JEV_PILOT_SYMBOLS = ["NVDA", "TSLA", "AAPL"] as const;
 export const REAL_JEV_PILOT_MAX_REQUESTS = 3 as const;
@@ -36,6 +41,8 @@ export interface RealJevShadowPilotOptions {
   maxRequests?: number;
   maxEstimatedCostUsd?: number;
   now?: () => number;
+  /** Optional private hook used to freeze a prospective decision from this exact snapshot. */
+  onReadyShadow?: (shadow: ReadyShadow) => void | Promise<void>;
 }
 
 export interface RealJevReadySymbol {
@@ -251,6 +258,26 @@ export async function runRealJevShadowPilot(
         actualCostUsd,
         results,
       );
+    }
+    if (options.onReadyShadow) {
+      try {
+        await options.onReadyShadow(shadow);
+      } catch {
+        results.push({
+          symbol: ticker,
+          status: "blocked",
+          reason: "prospective_decision_persist_failed",
+          requestCount,
+          providerHttpStatus,
+        });
+        return blocked(
+          "prospective_decision_persist_failed",
+          requestCount,
+          estimatedCostUsd,
+          actualCostUsd,
+          results,
+        );
+      }
     }
     if (actualCostUsd > maxEstimatedCostUsd) {
       results.push({

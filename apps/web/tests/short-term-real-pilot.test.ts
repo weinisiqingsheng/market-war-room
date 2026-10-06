@@ -133,6 +133,7 @@ describe("private real Jev shadow pilot", () => {
 
   it("records verified market input and real Jev output with one bounded request", async () => {
     const store = createInMemoryShadowStore();
+    const onReadyShadow = vi.fn();
     const result = await runRealJevShadowPilot({
       confirmation: REAL_JEV_PILOT_CONFIRMATION,
       apiKey: "test-secret",
@@ -140,6 +141,7 @@ describe("private real Jev shadow pilot", () => {
       research: async () => verifiedContext("NVDA"),
       transport: realTransport(),
       shadowStore: store,
+      onReadyShadow,
     });
 
     expect(result.status).toBe("completed");
@@ -154,6 +156,12 @@ describe("private real Jev shadow pilot", () => {
       providerHttpStatus: 200,
     });
     expect(store.list()).toHaveLength(1);
+    expect(onReadyShadow).toHaveBeenCalledTimes(1);
+    expect(onReadyShadow.mock.calls[0]?.[0]).toMatchObject({
+      status: "ready",
+      marketInputStatus: "verified_market_input",
+      modelOutputStatus: "real_jev_model_output",
+    });
     expect(JSON.stringify(store.list())).not.toContain("test-secret");
   });
 
